@@ -1082,28 +1082,7 @@ cells = surv.concat(newCells);
           if (running) step();
       }, 1000 / parseInt(speedSlider.value, 10));
 }
-
-
-// 1. 地面の記憶専用の二次元配列（広域変数）
-var groundMemoryMap = Array.from({ length: MAP }, () => Array(MAP).fill(null));
-
-// 2. 書き込み（Aタイプ死亡時）
-function releaseMEG(x, y, exp, spikes) {
-    // 座標 (x, y) に直接データを置く（計算量 O(1)）
-    groundMemoryMap[y][x] = { exp: exp, spikes: spikes };
-}
-
-// 3. 読み取り（Gタイプ移動時）
-function gAbsorbMEG(c) {
-    let data = groundMemoryMap[c.y][c.x];
-    if (data) {
-        c.hasMemory = true;
-        c.memoryExp = data.exp;
-        c.memorySpikes = data.spikes;
-        // 読み取ったら地面からは消す（あるいは減衰させる）
-        groundMemoryMap[c.y][c.x] = null;
-    }
-}///////////////////////////////////////////// functionstepここまで////////////////////////////////////////////
+///////////////////////////////////////////// functionstepここまで////////////////////////////////////////////
 
 
        function trySpawnF(){
@@ -1591,6 +1570,6 @@ for (var i = 0; i < arraysToCalculate.length; i++) {
 </div>
 
 Full Eco Simulation (A&gt;B&gt;C&gt;A + Predation + Mutation + Toxin + E-type + Shape Evolution + F-type)<br>
-完成04062026_____少しだけ修正を加えた。
+完成04062026
 </body>
 </html>
