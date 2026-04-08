@@ -2,7 +2,7 @@
 A > B > C > A Ecosystem + Mutation + Predation + Memory Inheritance + E/F-type Evolution  
 ReGenesis Engine ver1.56 / 2026  
 Created by M. Morimoto
-
+parioetlaforet@gmail.com
 ---
 
 ## 🌍 Overview
