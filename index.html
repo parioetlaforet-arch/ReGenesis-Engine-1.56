@@ -2718,7 +2718,68 @@ document.getElementById("lastUpdate").textContent = "Last Update: " + formatted;
     </div>
 
 </section>
-Full Eco Simulation (A&gt;B&gt;C&gt;A + Predation + Mutation + Toxin + E-type + Shape Evolution + F-type)<br>
+<section id="dev-log-archive" style="max-width: 850px; margin: 80px auto 40px; padding: 30px; background-color: #050505; border: 1px solid #1a1a1a; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: #666; border-radius: 4px;">
+    
+    <header style="border-bottom: 1px solid #222; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline;">
+        <h3 style="margin: 0; font-size: 0.9rem; color: #aaa; text-transform: uppercase; letter-spacing: 2px;">System Update Logs</h3>
+        <span style="font-size: 0.75rem; color: #444;">Status: Fully Evolving</span>
+    </header>
+
+    <div class="log-container" style="font-size: 0.8rem; line-height: 1.6; max-height: 500px; overflow-y: auto; padding-right: 10px;">
+        
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #58a6ff;">[2026/04/15 14:36]</strong><br>
+            - Gの行動修正：360色を12分割した色分けグループ化を強化<br>
+            - evoAがコロニーから離れ、単独の捕食圏を形成
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/14 16:26]</strong><br>
+            - 負の遺産：黒い粒子の悪影響を実装<br>
+            - 生態系バランス調整：E発生率低下 / F寿命を3000へ / 毒素リセット
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/13 13:42]</strong><br>
+            - 群れ行動：Gタイプ専用のBoidsアルゴリズム実装<br>
+            - 環境エフェクト：降雨および隕石のビジュアル追加<br>
+            - バグ修正：TYPE_H定義、moveE重複、パーティクル色指定の正常化
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/10 16:31]</strong><br>
+            - 天変地異：隕石イベントの追加<br>
+            - 防衛本能：Eが毒を吐く挙動を実装
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/08 0409 0410]</strong><br>
+            - <span style="color: #d2a8ff;">Genesis Turbulence</span>：初期化プロセスの再構築<br>
+            - 各タイプAI強化：匂い追跡(G) / ハンター(A) / パック(C) / 死骸探索(B) / 毒素回避(E)<br>
+            - 生態系の「呼吸」：栄養・毒素・廃棄物の循環が自然化
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/06 - 0407]</strong><br>
+            - <span style="color: #7ee787;">Full Eco Simulation Project Started</span><br>
+            - Aタイプ：軽量カラフル化 / ランダム楕円形状への進化 / トゲの描画最適化<br>
+            - 空間ロトカ＝ヴォルテラ / エマージェント・マルチセルラリティ
+        </div>
+
+    </div>
+
+    <footer style="margin-top: 20px; font-size: 0.7rem; color: #333; text-align: right; font-style: italic;">
+        Experimental Ecosystem Build: 0415-Finalized
+    </footer>
+
+    <style>
+        /* スクロールバーのカスタマイズ */
+        .log-container::-webkit-scrollbar { width: 4px; }
+        .log-container::-webkit-scrollbar-track { background: #050505; }
+        .log-container::-webkit-scrollbar-line { background: #1a1a1a; }
+        .log-container::-webkit-scrollbar-thumb { background: #333; }
+    </style>
+</section>
 
 </body>
 </html>
