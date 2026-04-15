@@ -2719,42 +2719,68 @@ document.getElementById("lastUpdate").textContent = "Last Update: " + formatted;
 
 </section>
 Full Eco Simulation (A&gt;B&gt;C&gt;A + Predation + Mutation + Toxin + E-type + Shape Evolution + F-type)<br>
-完成04062026,Gの発色調整,Aのトゲ色調整,Aのトゲ大きさ調整(04072026)<br>Aタイプ本体の色を“軽量カラフル化”<br>Aタイプ本体の形を“ランダム楕円形状”に進化<br>Aタイプ描画処理をランダム楕円に対応<br>UI修正<br>空間ロトカ＝ヴォルテラ<br>エマージェント・マルチセルラリティ<br>Genesis Turbulence(04082026)<br>restartWorld() の初期化処理を整理
+<section id="dev-log-archive" style="max-width: 850px; margin: 80px auto 40px; padding: 30px; background-color: #050505; border: 1px solid #1a1a1a; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: #666; border-radius: 4px;">
+    
+    <header style="border-bottom: 1px solid #222; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline;">
+        <h3 style="margin: 0; font-size: 0.9rem; color: #aaa; text-transform: uppercase; letter-spacing: 2px;">System Update Logs</h3>
+        <span style="font-size: 0.75rem; color: #444;">Status: Fully Evolving</span>
+    </header>
 
-nutrient / toxin / waste の再生成
+    <div class="log-container" style="font-size: 0.8rem; line-height: 1.6; max-height: 500px; overflow-y: auto; padding-right: 10px;">
+        
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #58a6ff;">[2026/04/15 14:36]</strong><br>
+            - Gの行動修正：360色を12分割した色分けグループ化を強化<br>
+            - evoAがコロニーから離れ、単独の捕食圏を形成
+        </div>
 
-chartData のリセット
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/14 16:26]</strong><br>
+            - 負の遺産：黒い粒子の悪影響を実装<br>
+            - 生態系バランス調整：E発生率低下 / F寿命を3000へ / 毒素リセット
+        </div>
 
-clusters / nextClusterId のリセット
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/13 13:42]</strong><br>
+            - 群れ行動：Gタイプ専用のBoidsアルゴリズム実装<br>
+            - 環境エフェクト：降雨および隕石のビジュアル追加<br>
+            - バグ修正：TYPE_H定義、moveE重複、パーティクル色指定の正常化
+        </div>
 
-worldEvolutionLevel の初期化
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/10 16:31]</strong><br>
+            - 天変地異：隕石イベントの追加<br>
+            - 防衛本能：Eが毒を吐く挙動を実装
+        </div>
 
-running の状態管理改善
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/08 0409 0410]</strong><br>
+            - <span style="color: #d2a8ff;">Genesis Turbulence</span>：初期化プロセスの再構築<br>
+            - 各タイプAI強化：匂い追跡(G) / ハンター(A) / パック(C) / 死骸探索(B) / 毒素回避(E)<br>
+            - 生態系の「呼吸」：栄養・毒素・廃棄物の循環が自然化
+        </div>
 
-画面リサイズ後の CELL 再計算
+        <div style="margin-bottom: 25px;">
+            <strong style="color: #8b949e;">[2026/04/06 - 0407]</strong><br>
+            - <span style="color: #7ee787;">Full Eco Simulation Project Started</span><br>
+            - Aタイプ：軽量カラフル化 / ランダム楕円形状への進化 / トゲの描画最適化<br>
+            - 空間ロトカ＝ヴォルテラ / エマージェント・マルチセルラリティ
+        </div>
 
-GT（Gタイプ）発生位置がランダム化されるようになった
-→ 草原の偏りが減り、自然な分布に
+    </div>
 
-Elder E の shape が未定義の可能性を考慮
-→ shape が無い場合は初期化してから spikes を付与
+    <footer style="margin-top: 20px; font-size: 0.7rem; color: #333; text-align: right; font-style: italic;">
+        Experimental Ecosystem Build: 0415-Finalized
+    </footer>
 
-描画時の CELL 変動による一時的な形状乱れを軽減<br>Gタイプ（植物）AI：匂い追跡AI（Scent‑Following AI）<br>Aタイプ（捕食者）AI：ハンターAI強化版<br>Cタイプ（群れ捕食者）AI：パックAI（群れ行動）<br>Bタイプ（スカベンジャー）AI：死骸探索AI<br>Eタイプ（環境浄化者）AI：毒素回避AI<br>世界全体の挙動が大幅に自然化
-今回のAI強化により、世界は以下のように変化：
-
-G が草原を作る
-
-A が草原に狩りに来る
-
-C が群れで突っ込む
-
-B が死骸を処理する
-
-E が毒素と廃棄物を浄化する
-
-Elder E が毒地帯をさらに浄化
-
-栄養・毒素・廃棄物が循環し、世界が“呼吸するように”変動<br>光るE<br>Last Update: 2026/04/09 16:09<br>隕石イベントを追加Last、Eが毒を吐く Update: 2026/04/10 16:31<br>TYPE_H がどこにも定義されていない。moveE の二重定義＆おかしなネスト.パーティクルの色指定バグ.フラッシュエフェクトが実質「一度も描かれない.updateToxin() のリセット時だけ G の色がランダムでない.色ごとに群れを作る Boids（Gタイプ専用）実装。降雨と隕石のエフェクト追加。Last Update: 2026/04/13 13:42<br>黒い粒子が世界に悪影響を及ぼす効果を実装。Eの発生確率を下げた。Fの寿命を3000にした。毒素をリセット。Last Update: 2026/04/14 16:26<br>Gの行動の修正色分けによるグループ化の強化、360色を12分割してグループ化。evoAがコロニーから離れるようになった。Last Update: 2026/04/15 14:36
+    <style>
+        /* スクロールバーのカスタマイズ */
+        .log-container::-webkit-scrollbar { width: 4px; }
+        .log-container::-webkit-scrollbar-track { background: #050505; }
+        .log-container::-webkit-scrollbar-line { background: #1a1a1a; }
+        .log-container::-webkit-scrollbar-thumb { background: #333; }
+    </style>
+</section>
 </body>
 </html>
 
