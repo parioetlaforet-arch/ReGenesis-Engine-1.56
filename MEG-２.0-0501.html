@@ -1,0 +1,5205 @@
+﻿
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset="UTF-8">
+      <title>Full Eco Simulation (ReGenesis Engine《MEG》ver2.0)</title>
+      <style>
+          body { background:#222; color:#eee; text-align:center; margin:0; }
+          canvas { background:#000; border:2px solid #444; margin-top:20px;
+margin-left:10px; }
+          .panel {
+              position: absolute;
+              left:20px;
+              top: 100px;
+              width: 100px;
+              text-align: left;
+          }
+          body.screensaver-mode .panel,
+          body.screensaver-mode h2,
+          body.screensaver-mode h5,
+          body.screensaver-mode #logBox,
+          body.screensaver-mode #chartCanvas,
+          body.screensaver-mode div[style*="color:#888"] {
+              display: none !important;
+          }
+          body.screensaver-mode {
+              background: #000;
+              overflow: hidden;
+          }
+         body.screensaver-mode canvas#canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    /* width/height を削除する */
+}
+
+      </style>
+</head>
+<body>
+
+<h3>
+    ReGenesis Engine《MEG》ver2.0
+    <span id="lastUpdate" style="font-size:12px; color:#ccc; margin-left:10px;"></span>
+</h3>
+
+
+
+
+
+<canvas id="canvas" width="928" height="800" style="margin-right:100px;"></canvas>
+
+
+<!-- 右側パネル -->
+<div id="rightPanel"
+     style="position:absolute; right:20px; top:100px; width:220px; z-index:9999; text-align:left; margin-left:20px;">
+     <!-- ログ -->
+    <div id="logBox" style="
+        width:100%; height:50px; overflow-y:scroll;
+        background:#111; color:#0f0; padding:10px;
+        border:2px solid #444; font-size:12px; text-align:left;">
+    </div>
+ <!-- ログ2 -->
+    <div id="logBox2" style="
+        width:100%; height:50px; overflow-y:scroll;
+        background:#111; color:#0f0; padding:10px;
+        border:2px solid #444; font-size:12px; text-align:left;">
+    </div>
+  <!-- ログ3 -->
+    <div id="logBox3" style="
+        width:100%; height:50px; overflow-y:scroll;
+        background:#111; color:#0f0; padding:10px;
+        border:2px solid #444; font-size:12px; text-align:left;">
+    </div>
+ <!-- ログ4 -->
+    <div id="logBox4" style="
+        width:100%; height:50px; overflow-y:scroll;
+        background:#111; color:#0f0; padding:10px;
+        border:2px solid #444; font-size:12px; text-align:left;">
+    </div>
+ <!-- ログ5 -->
+    <div id="logBox5" style="
+        width:100%; height:50px; overflow-y:scroll;
+        background:#111; color:#0f0; padding:10px;
+        border:2px solid #444; font-size:12px; text-align:left;">
+    </div>
+ <!-- ボタン -->
+    <div id="rightButtons" style="text-align:center; margin-top:20px;">
+        <button id="startBtn">Start</button>
+        <button id="stopBtn">Stop</button>
+        <button id="restartBtn">Restart</button>
+        <button id="godBtn"
+            style="background-color:#4b0082;color:#ffa500;border:1px solid #ffa500;">
+           ✧
+<button id="toggleG">G 表示 / 非表示</button>
+<button id="toggleA">A 表示 / 非表示</button>
+<button id="toggleB">B 表示 / 非表示</button>
+<button id="toggleC">C 表示 / 非表示</button>
+
+        </button>
+<button id="envChaosBtn"
+    style="background-color:#880000;color:#fff;border:1px solid #ff4444;">
+    Env Chaos
+</button>
+
+    </div>
+
+    <!-- チャート -->
+    <canvas id="chartCanvas" width="220" height="200"
+            style="background:#111; border:1px solid #444; margin-top:20px;">
+    </canvas>
+
+     <!-- スライダー群 -->
+    <div id="sliders" style="margin-top:20px; font-size:12px;">
+Environment Change Strength<br>
+<input id="envStrengthSlider" type="range" min="0" max="100" value="50">
+<span id="envStrengthValue">1.00</span><br><br>
+
+
+        Initial Population<br>
+        <input id="initSlider" type="range" min="10" max="500" value="200">
+        <span id="initValue">200</span><br><br>
+
+        Simulation Speed<br>
+        <input id="speedSlider" type="range" min="1" max="60" value="30">
+        <span id="speedValue">30</span><br><br>
+
+        Type-A Mutation Rate<br>
+        <input id="aSlider" type="range" min="0" max="100" value="33">
+        <span id="aValue">33%</span><br><br>
+
+        Type-B Mutation Rate<br>
+        <input id="bSlider" type="range" min="0" max="100" value="33">
+        <span id="bValue">33%</span><br><br>
+
+        Toxin Toxicity<br>
+        <input id="toxinFactorSlider" type="range" min="0" max="100" value="10">
+        <span id="toxinFactorValue">0.05</span><br><br>
+
+        Max Toxin Concentration<br>
+        <input id="toxinMaxSlider" type="range" min="0" max="100" value="30">
+        <span id="toxinMaxValue">0.10</span><br><br>
+
+        Nutrient Fertility<br>
+        <input id="nutrientSlider" type="range" min="50" max="200" value="100">
+        <span id="nutrientValue">1.00</span><br><br>
+
+        Density-Dependent Mortality<br>
+        <input id="densitySlider" type="range" min="0" max="100" value="20">
+        <span id="densityValue">0.02</span><br><br>
+
+        Type-G Spontaneous Generation<br>
+        <input id="greenSpawnSlider" type="range" min="0" max="100" value="50">
+        <span id="greenSpawnValue">0.50</span><br><br>
+
+    </div>
+
+</div>
+
+
+<script>
+// ============================================================
+// ★ 統計データ（グラフ用）の初期化
+// ============================================================
+// 各ターンごとの個体数を記録するための配列
+var chartData = {
+    G:[], A:[], B:[], C:[], E:[], I:[], EvA:[], turn:[]
+};
+
+
+// ============================================================
+// ★ DOMContentLoaded：ページ読み込み後に実行される初期化処理
+// ============================================================
+document.addEventListener("DOMContentLoaded", function(){
+
+
+    // ========================================================
+    // ★ ログ出力関数（logBox にメッセージを追加）
+    // ========================================================
+    function log(msg, color){
+        if(color===undefined) color="#0f0";
+
+        var box = document.getElementById("logBox");
+        var time = new Date().toLocaleTimeString();
+
+        var div = document.createElement("div");
+        div.style.color = color;
+        div.textContent = "[" + time + "] " + msg;
+
+        box.appendChild(div);
+
+        // ログが50行を超えたら古いものから削除
+        if(box.children.length > 50){
+            box.removeChild(box.firstChild);
+        }
+
+        box.scrollTop = box.scrollHeight;
+    }
+
+
+    // ========================================================
+    // ★ 表示切り替え（G/A/B/C を見えなくする）
+    // ========================================================
+    // hideG / hideA / hideB / hideC はグローバル変数として存在する前提
+    document.getElementById("toggleG").onclick = () => {
+        hideG = !hideG;
+    };
+    document.getElementById("toggleA").onclick = () => {
+        hideA = !hideA;
+    };
+    document.getElementById("toggleB").onclick = () => {
+        hideB = !hideB;
+    };
+    document.getElementById("toggleC").onclick = () => {
+        hideC = !hideC;
+    };
+
+
+    // ========================================================
+    // ★ 複数のログボックス用 log2 / log3 / log4 / log5
+    // ========================================================
+    // それぞれ別のログ領域に出力するだけで、処理内容は log() と同じ
+    function log2(msg, color){
+        if(color===undefined) color="#0f0";
+        var box = document.getElementById("logBox2");
+        var time = new Date().toLocaleTimeString();
+        var div = document.createElement("div");
+        div.style.color = color;
+        div.textContent = "[" + time + "] " + msg;
+        box.appendChild(div);
+        if(box.children.length > 50){
+            box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function log3(msg, color){
+        if(color===undefined) color="#0f0";
+        var box = document.getElementById("logBox3");
+        var time = new Date().toLocaleTimeString();
+        var div = document.createElement("div");
+        div.style.color = color;
+        div.textContent = "[" + time + "] " + msg;
+        box.appendChild(div);
+        if(box.children.length > 50){
+            box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function log4(msg, color){
+        if(color===undefined) color="#0f0";
+        var box = document.getElementById("logBox4");
+        var time = new Date().toLocaleTimeString();
+        var div = document.createElement("div");
+        div.style.color = color;
+        div.textContent = "[" + time + "] " + msg;
+        box.appendChild(div);
+        if(box.children.length > 50){
+            box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function log5(msg, color){
+        if(color===undefined) color="#0f0";
+        var box = document.getElementById("logBox5");
+        var time = new Date().toLocaleTimeString();
+        var div = document.createElement("div");
+        div.style.color = color;
+        div.textContent = "[" + time + "] " + msg;
+        box.appendChild(div);
+        if(box.children.length > 50){
+            box.removeChild(box.firstChild);
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+
+
+  // ============================================================
+// ★ スライダー要素の取得（UI入力）
+// ============================================================
+var initSlider = document.getElementById("initSlider");
+var speedSlider = document.getElementById("speedSlider");
+var aSlider = document.getElementById("aSlider");
+var bSlider = document.getElementById("bSlider");
+var toxinFactorSlider = document.getElementById("toxinFactorSlider");
+var toxinMaxSlider = document.getElementById("toxinMaxSlider");
+var nutrientSlider = document.getElementById("nutrientSlider");
+var densitySlider = document.getElementById("densitySlider");
+var greenSpawnSlider = document.getElementById("greenSpawnSlider");
+
+// ============================================================
+// ★ スライダーの値表示用の DOM 要素
+// ============================================================
+var initValue = document.getElementById("initValue");
+var speedValue = document.getElementById("speedValue");
+var aValue = document.getElementById("aValue");
+var bValue = document.getElementById("bValue");
+var toxinFactorValue = document.getElementById("toxinFactorValue");
+var toxinMaxValue = document.getElementById("toxinMaxValue");
+var nutrientValue = document.getElementById("nutrientValue");
+var densityValue = document.getElementById("densityValue");
+var greenSpawnValue = document.getElementById("greenSpawnValue");
+
+// ============================================================
+// ★ スライダー操作時に値を表示に反映する処理
+// ============================================================
+initSlider.oninput = function(){ initValue.textContent = initSlider.value; };
+speedSlider.oninput = function(){ speedValue.textContent = speedSlider.value; };
+
+// ★ 環境強度スライダー（envStrength）
+const envStrengthSlider = document.getElementById("envStrengthSlider");
+const envStrengthValue = document.getElementById("envStrengthValue");
+
+envStrengthSlider.oninput = function() {
+    envStrengthValue.textContent = (this.value / 50).toFixed(2);
+};
+
+// ============================================================
+// ★ A と B の初期出現割合
+// ============================================================
+var aRate = 0.33;
+var bRate = 0.33;
+
+aSlider.oninput = function(){
+    aValue.textContent = aSlider.value + "%";
+    aRate = aSlider.value / 100;
+};
+bSlider.oninput = function(){
+    bValue.textContent = bSlider.value + "%";
+    bRate = bSlider.value / 100;
+};
+
+// ============================================================
+// ★ 環境パラメータ（毒・栄養・密度死など）
+// ============================================================
+var TOXIN_DEATH_FACTOR = 0.05;   // 毒による死亡率
+var TOXIN_MAX = 0.10;            // 毒の最大値
+var NUTRIENT_SCALE = 1.00;       // 栄養の強さ
+var DENSITY_DEATH_RATE = 0.02;   // 密度が高いと死ぬ確率
+var greenSpawnRate = 0.50;       // 緑（G）の自然発生率
+
+// エフェクト用
+var particles = [];
+
+// ★ 世界ログ（タイムライン）
+var globalLog = [];
+
+// ============================================================
+// ★ スライダーで環境パラメータをリアルタイム変更
+// ============================================================
+toxinFactorSlider.oninput = function(){
+    TOXIN_DEATH_FACTOR = toxinFactorSlider.value / 100;
+    toxinFactorValue.textContent = TOXIN_DEATH_FACTOR.toFixed(2);
+};
+toxinMaxSlider.oninput = function(){
+    TOXIN_MAX = toxinMaxSlider.value / 100;
+    toxinMaxValue.textContent = TOXIN_MAX.toFixed(2);
+};
+nutrientSlider.oninput = function(){
+    NUTRIENT_SCALE = nutrientSlider.value / 100;
+    nutrientValue.textContent = NUTRIENT_SCALE.toFixed(2);
+};
+densitySlider.oninput = function(){
+    DENSITY_DEATH_RATE = densitySlider.value / 1000;
+    densityValue.textContent = DENSITY_DEATH_RATE.toFixed(3);
+};
+greenSpawnSlider.oninput = function(){
+    greenSpawnRate = greenSpawnSlider.value / 100;
+    greenSpawnValue.textContent = greenSpawnRate.toFixed(2);
+};
+
+// ============================================================
+// ★ マップ設定
+// ============================================================
+var MAP = 160;               // マップのセル数（縦横）
+var CELL = 928 / MAP;        // 1セルの描画サイズ
+var cvs = document.getElementById("canvas");
+var ctx = cvs.getContext("2d");
+var running = false;
+// ============================================================
+// ★ 生態系の基本パラメータ
+// ============================================================
+var ENERGY_DIV = 0.8;        // 分裂時のエネルギー分配
+var ENERGY_DECAY = 0.045;    // エネルギー自然減衰
+var BASE_MUT_RATE = 0.25;    // 突然変異率
+var MAX_SIZE = 10;           // 最大サイズ
+var CAPACITY = 250;          // 最大個体数
+
+// ============================================================
+// ★ タイプ定義（生物の種類）
+// ============================================================
+var TYPE_G = 0;  // 緑（栄養源）
+var TYPE_A = 1;  // 捕食者 A
+var TYPE_B = 2;  // 社会性生物 B
+var TYPE_C = 3;  // C（別の生物？）
+var TYPE_E = 4;  // E（エフェクト？）
+var TYPE_F = 5;  // F
+var TYPE_I = 6;  // I（感染？）
+
+var eCount = 0;
+var turnCount = 0;
+
+// ============================================================
+// ★ 寿命・病気などの生存パラメータ
+// ============================================================
+var BASE_MAX_AGE = 600;
+var AGE_VARIATION = 400;
+var DISEASE_RATE = 0.0005;
+
+var GREEN_MAX_AGE = 50000;
+var GREEN_AGE_VARIATION = 1000;
+
+var DENSITY_TOXIN_RATE = 0.05;
+var DENSITY_THRESHOLD = 6;
+
+var MITO_CHANCE = 0.05;
+var MITO_ENERGY_GAIN = 0.015;
+
+const MAX_SPIKE_COST = 100;
+
+// ============================================================
+// ★ 環境マップ（栄養・毒・廃棄物）
+// ============================================================
+var nutrient = [];
+var toxin = [];
+var waste = [];
+
+// マップ初期化（ランダム生成）
+for(let y = 0; y < MAP; y++){
+    nutrient[y] = [];
+    toxin[y] = [];
+    waste[y] = [];
+    for(let x = 0; x < MAP; x++){
+        nutrient[y][x] = Math.random() * NUTRIENT_SCALE; // 栄養
+        toxin[y][x] = Math.random() * TOXIN_MAX;         // 毒
+        waste[y][x] = 0;                                 // 廃棄物
+    }
+}
+
+
+// ============================================================
+// ★ グローバル変数（シミュレーション全体で使う）
+// ============================================================
+
+// 画面フラッシュ演出
+let flashX = null;
+let flashY = null;
+let flashTimer = 0;
+
+// 粒子雨エフェクト
+let particleRain = null;
+
+// I（感染系）の個体数履歴
+let I_history = [];
+
+// B コロニーの中心座標
+let colonyCenter = { x: 50, y: 50 };
+let colonyAge = 0;
+let colonyLifetime = 3000;
+let colonyState = "stable"; // "stable" or "collapse"
+
+// 種別ごとの表示 ON/OFF
+let hideG = false;
+let hideA = false;
+let hideB = false;
+let hideC = false;
+
+// 種別ごとの表示管理（UI用）
+let showSpecies = {
+    G: true,
+    A: true,
+    B: true,
+    C: true,
+    E: true,
+    I: true
+};
+
+
+
+// ============================================================
+// ★ I（感染系）の個体数推移グラフを描画
+// ============================================================
+function drawIChart() {
+    const canvas = document.getElementById("chartCanvas");
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (I_history.length < 2) return;
+
+    let w = canvas.width;
+    let h = canvas.height;
+
+    let maxI = Math.max(...I_history, 1);
+
+    ctx.strokeStyle = "#0f0";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let i = 0; i < I_history.length; i++) {
+        let x = (i / (I_history.length - 1)) * w;
+        let y = h - (I_history[i] / maxI) * h;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+
+    ctx.fillStyle = "#0f0";
+    ctx.font = "10px monospace";
+    ctx.fillText("I: " + I_history[I_history.length - 1], 5, 12);
+}
+
+
+// ============================================================
+// ★ 全個体リスト
+// ============================================================
+var cells = [];
+
+
+// ============================================================
+// ★ クラスター管理（群れの中心計算など）
+// ============================================================
+let clusters = [];
+let nextClusterId = 1;
+
+class Cluster {
+    constructor(id) {
+        this.id = id;
+        this.cells = [];
+        this.cx = 0;
+        this.cy = 0;
+        this.energy = 0;
+        this.age = 0;
+    }
+
+    // クラスターの中心座標と総エネルギーを計算
+    updateCenterAndEnergy() {
+        if (this.cells.length === 0) return;
+        let sx = 0, sy = 0, se = 0;
+        for (const c of this.cells) {
+            sx += c.x;
+            sy += c.y;
+            se += c.energy;
+        }
+        this.cx = sx / this.cells.length;
+        this.cy = sy / this.cells.length;
+        this.energy = se;
+    }
+}
+
+
+// ============================================================
+// ★ 個体生成（すべてのタイプの初期化処理）
+// ============================================================
+function makeCell(x, y, type){
+    var cell = {
+        x: x,
+        y: y,
+        energy: 1,
+        type: type,
+        hasMito: false,
+        hue: Math.floor(Math.random() * 360),
+        size: (type === TYPE_E) ? 6 : 3,
+        dir: 0,
+        age: 0,
+
+        // 寿命（タイプごとに異なる）
+        maxAge: (type === 0)
+            ? GREEN_MAX_AGE + Math.floor((Math.random() * 2 - 1) * GREEN_AGE_VARIATION)
+            : BASE_MAX_AGE + Math.floor((Math.random() * 2 - 1) * AGE_VARIATION),
+
+        // 形状パラメータ（A の進化で変化）
+        shape: {
+            spikes: 0,
+            elongation: 1.0,
+            colorShift: 0
+        },
+
+        absorbed: { 0: false, 1: false, 2: false },
+
+        traits: {
+            attack: false,
+            defense: false,
+            predator: false,
+            longLife: false
+        },
+
+        isElder: false,
+        dead: false,
+        clusterId: null,
+        mitoEnergy: 0,
+        energyFromPredation: 0,
+
+        // 個体の人生ログ
+        log: { events: [] }
+    };
+
+    // TYPE_A（捕食者）の楕円形パラメータ
+    if (type === TYPE_A) {
+        cell.shape.ellipseA = 1.0 + Math.random() * 0.6;
+        cell.shape.ellipseB = 0.5 + Math.random() * 0.4;
+        cell.shape.ellipseRot = Math.random() * Math.PI;
+    }
+
+    // TYPE_E（突然変異系）
+    if(type === TYPE_E){
+        cell.maxAge = Math.floor(cell.maxAge * 8.0);
+        cell.traits.attack  = Math.random() < 0.25;
+        cell.traits.defense = Math.random() < 0.25;
+        cell.traits.predator = Math.random() < 0.25;
+        cell.traits.longLife = Math.random() < 0.25;
+    }
+
+    // TYPE_F（特殊個体）
+    if(type === TYPE_F){
+        cell.maxAge = 1000;
+        cell.energy = 0.5;
+        cell.size = 4;
+        cell.traits = null;
+        cell.hasMito = false;
+        cell.isElder = false;
+        cell.mitoEnergy = 0;
+        cell.energyFromPredation = 0;
+    }
+
+    // TYPE_I（感染系）
+    if (type === TYPE_I) {
+        cell.size = 2.5;
+        cell.energy = 0.8;
+        cell.exp = 0;
+        cell.hue = 200;
+        cell.absorbPower = 2;
+        cell.absorbExp = 1;
+    }
+
+    return cell;
+}
+
+
+// ============================================================
+// ★ 個体ログ追加
+// ============================================================
+function addLog(c, type, detail="") {
+    if (!c || !c.log) return;
+    c.log.events.push({
+        turn: turnCount,
+        type: type,
+        detail: detail
+    });
+}
+
+// ============================================================
+// ★ 世界ログ追加（全体イベント）
+// ============================================================
+function addWorldLog(type, detail="") {
+    globalLog.push({
+        turn: turnCount,
+        type: type,
+        detail: detail
+    });
+}
+
+
+// ============================================================
+// ★ A のトゲコストペナルティ（進化しすぎ防止）
+// ============================================================
+let worldEvolutionLevel = 1.0;
+
+function applySpikeCostPenalty(c) {
+    if(!c.shape) return;
+
+    let adaptiveCoeff = 0.05 * worldEvolutionLevel;
+    let cost = c.shape.spikes * c.shape.spikes * adaptiveCoeff;
+
+    if(cost <= MAX_SPIKE_COST) return;
+
+    let over = cost - MAX_SPIKE_COST;
+
+    // トゲが多すぎると寿命が減る
+    c.maxAge = Math.max(100, c.maxAge - over * 2);
+}
+
+
+// ============================================================
+// ★ 初期生成（G をばらまく）
+// ============================================================
+function initCells(){
+    cells = [];
+    var n = parseInt(initSlider.value, 10);
+
+    for(var i = 0; i < n; i++){
+        let g0 = makeCell(
+            Math.floor(Math.random() * MAP),
+            Math.floor(Math.random() * MAP),
+            0
+        );
+        applyRandomColorToG(g0);
+        cells.push(g0);
+    }
+
+    log("シミュレーション開始", "#ffffff");
+}
+
+// ============================================================
+// ★ 寿命計算（環境依存の動的寿命）
+// ============================================================
+// その個体が「今いる場所の環境」によって寿命が変動する。
+// 栄養が多い → 寿命が伸びる
+// 毒素・廃棄物が多い → 寿命が縮む
+// 周囲の密度が高い → ストレスで寿命が縮む
+function calcMaxLife(c) {
+    let base = 200; // 基本寿命（固定値ではなく“基準値”）
+
+    let bonus = 0;
+
+    // 栄養が多いほど寿命が伸びる
+    bonus += nutrient[c.y][c.x] * 50;
+
+    // 毒素が多いほど寿命が縮む
+    bonus -= toxin[c.y][c.x] * 80;
+
+    // 廃棄物が多いほど寿命が縮む
+    bonus -= waste[c.y][c.x] * 40;
+
+    // 密度ストレス（周囲の個体数）
+    let n = countNeighbors(c.x, c.y);
+    if (n > 5) bonus -= (n - 5) * 10;
+
+    // 最低保証
+    if (base + bonus < 50) return 50;
+
+    return base + bonus;
+}
+// ============================================================
+// ★ 寿命設定ここまで
+// ============================================================
+
+
+
+// ============================================================
+// ★ A の移動ロジック（捕食者行動）
+// ============================================================
+// A は周囲の G(0) と B(2) を探索し、最も近い獲物に向かって移動する。
+// 獲物がいなければランダム移動。
+// 進化により探索範囲(huntBonus)と速度(moveBonus)が上昇する。
+function moveA(c) {
+    let target = null;
+    let bestDist = 9999;
+
+    // 探索範囲（進化で伸びる）
+    let baseRange = 5;
+    let huntRange = baseRange + (c.huntBonus || 0);
+    let huntRangeSq = huntRange * huntRange;
+
+    // 移動速度（進化で上昇）
+    let speed = 1 + (c.moveBonus || 0);
+
+    // ランダム移動用
+    let moveX = ((Math.random() * (speed*2+1)) | 0) - speed;
+    let moveY = ((Math.random() * (speed*2+1)) | 0) - speed;
+
+    // -------------------------------
+    // ★ ターゲット探索
+    // -------------------------------
+    for (const o of cells) {
+        if (o.dead || o === c) continue;
+
+        // A が狙うのは G(0) と B(2)
+        if (o.type !== 0 && o.type !== 2) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        let d2 = dx*dx + dy*dy;
+
+        // 最も近い獲物を選ぶ
+        if (d2 < bestDist && d2 <= huntRangeSq) {
+            bestDist = d2;
+            target = o;
+        }
+    }
+
+    // -------------------------------
+    // ★ ターゲットに向かって移動
+    // -------------------------------
+    if (target) {
+        let tx = Math.sign(target.x - c.x);
+        let ty = Math.sign(target.y - c.y);
+
+        c.x += tx * speed;
+        c.y += ty * speed;
+    } else {
+        // ★ 獲物がいない → ランダム移動
+        c.x += moveX;
+        c.y += moveY;
+    }
+
+    // -------------------------------
+    // ★ 座標を整数に丸める（重要）
+    // -------------------------------
+    c.x = Math.max(0, Math.min(MAP - 1, Math.round(c.x)));
+    c.y = Math.max(0, Math.min(MAP - 1, Math.round(c.y)));
+
+    // 範囲外に出ないように補正
+    if (c.x < 0) c.x = 0;
+    if (c.x >= MAP) c.x = MAP - 1;
+    if (c.y < 0) c.y = 0;
+    if (c.y >= MAP) c.y = MAP - 1;
+}
+// ============================================================
+// ★ A の移動ロジックここまで
+// ============================================================
+
+
+
+// ============================================================
+// ★ A の進化判定
+// ============================================================
+// A は exp（経験値）が一定以上になると進化する。
+// 進化済み or 死亡済み or A 以外は進化しない。
+function checkEvolution(c){
+    if (c.type !== 1) return false;  // A 以外は進化しない
+    if (c.dead) return false;        // 死亡個体は進化しない
+    if (c.isEvolved) return false;   // すでに進化済みなら進化しない
+
+    return c.exp >= 10;              // exp が一定以上で進化
+}
+// ============================================================
+// ★ A の進化判定ここまで
+// ============================================================
+
+
+
+// ============================================================
+// ★ A の進化処理（旧バージョン）
+// ============================================================
+// ※ この関数は後の「新バージョン」で上書きされる。
+//   つまりこの旧バージョンは実際には使われていない。
+function evolveA(c) {
+    c.maxLifeBonus = (c.maxLifeBonus || 0) + 50 + Math.random() * 50;
+    c.maxAge = 2000;
+    c.moveBonus = (c.moveBonus || 0) + 1;
+    c.huntBonus = (c.huntBonus || 0) + 3;
+
+    c.color = "rgb("
+        + (Math.random()*255|0) + ","
+        + (Math.random()*255|0) + ","
+        + (Math.random()*255|0) + ")";
+}
+// ============================================================
+// ★ A の進化処理（旧）ここまで
+// ============================================================
+
+
+
+// ============================================================
+// ★ A の進化処理（新バージョン：本命）
+// ============================================================
+// exp に応じて無段階で進化する。
+// トゲの本数・長さ・体型・色・寿命・探索範囲・速度が変化する。
+// A が「生態系の頂点捕食者」として成長していく。
+function evolveA(c) {
+
+    // --- 無段階進化レベル ---
+    c.evoLevel = Math.floor(c.exp / 10);
+
+    // --- トゲの本数 ---
+    if (!c.shape) c.shape = { spikes: 0, ellipseA: 1, ellipseB: 1 };
+    c.shape.spikes = Math.min(200, 2 + c.evoLevel * 1.5);
+
+    // --- トゲの長さ ---
+    c.shape.spikeLengthFactor = 0.8 + c.evoLevel * 0.05;
+
+    // --- サイズ（最大10まで成長） ---
+    c.size = Math.min(10.0, 1.0 + c.evoLevel * 0.2);
+
+    // --- 体型（楕円比率） ---
+    c.shape.ellipseA = 1.0 + c.evoLevel * 0.03;
+    c.shape.ellipseB = 1.0 + c.evoLevel * 0.01;
+
+    // --- 色（exp に応じて色相が変化） ---
+    let hue = (c.exp * 3) % 360;
+    let sat = Math.min(90, 40 + c.evoLevel * 2);
+    c.color = `hsl(${hue}, ${sat}%, 50%)`;
+
+    // --- 寿命ボーナス ---
+    c.maxLifeBonus = c.evoLevel * 30;
+
+    // --- 探索範囲・速度 ---
+    c.huntBonus = c.evoLevel * 0.5;
+    c.moveBonus = c.evoLevel * 0.2;
+}
+// ============================================================
+// ★ A の進化ロジックここまで
+// ============================================================
+////Bのロジックここから
+//// B の行動ロジック（コロニー化対応）
+function moveB(c) {
+
+    // ★ 初期化
+    if (c.colonyMode === undefined) c.colonyMode = false;
+    if (c.colonyStrength === undefined) c.colonyStrength = 1;
+    if (c.colonyBoost === undefined) c.colonyBoost = 0;
+    if (c.isQueen === undefined) c.isQueen = false;
+    if (c.isWarrior === undefined) c.isWarrior = false;
+    if (c.birthCooldown === undefined) c.birthCooldown = 0;
+
+    // ============================================================
+    // ★ 女王の行動（最優先）
+    // ============================================================
+    // ★ 女王の行動（最優先）
+if (c.isQueen) {
+
+    // ★ 寿命を1000ターンに設定
+    // 1ターンで 0.001 減る → 1000ターンで 1.0 減る
+    c.age -= 0.001;
+
+    // クールダウン
+    if (c.birthCooldown > 0) {
+        c.birthCooldown--;
+        return;
+    }
+
+    // ★ 子を産む（ノーマル or 兵隊）
+    let baby = {
+        x: c.x + (Math.random() < 0.5 ? 1 : -1),
+        y: c.y + (Math.random() < 0.5 ? 1 : -1),
+        type: 2,
+        size: 1,
+        age: 0,
+        dead: false,
+        colonyMode: false,
+        isQueen: false,
+        isWarrior: false,
+        colonyStrength: 1,
+        colonyBoost: 0
+    };
+
+    // ★ 兵隊Bの誕生（20%）
+    if (Math.random() < 0.20) {
+        baby.isWarrior = true;
+        baby.colonyStrength = 5;
+        baby.colonyBoost = 0.2;
+    }
+
+    cells.push(baby);
+
+    // 次の産卵までの時間
+    c.birthCooldown = 80 + Math.random() * 40;
+
+    return;
+}
+
+
+    // ============================================================
+    // ★ 兵隊Bの行動（A に反撃）
+    // ============================================================
+    if (c.isWarrior) {
+
+        // 寿命は短い
+        c.age -= 0.05;
+
+        // 近くの A を探す
+        for (const o of cells) {
+            if (o.dead || o.type !== 1) continue;
+
+            let dx = o.x - c.x;
+            let dy = o.y - c.y;
+            let d2 = dx*dx + dy*dy;
+
+            // ★ A が近い → 反撃
+            if (d2 < 9) { // 距離3以内
+                if (Math.random() < 0.4) { // 40%で勝つ
+                    o.dead = true; // A を倒す
+                } else {
+                    c.dead = true; // 負ける
+                }
+                return;
+            }
+        }
+    }
+
+    // ============================================================
+    // ★ コロニー化している場合（女王以外）
+    // ============================================================
+    if (c.colonyMode && !c.isWarrior) {
+
+        c.age -= 0.02 * (1 - c.colonyBoost);
+
+        if (Math.random() < 0.02) {
+            c.x += (Math.random() < 0.5 ? 1 : -1);
+            c.y += (Math.random() < 0.5 ? 1 : -1);
+        }
+
+        return;
+    }
+
+    // ============================================================
+    // ★ 密度の低い場所を探して colonyCenter を更新（新要素）
+    // ============================================================
+    let localDensity = 0;
+    let localA = 0;
+
+    for (const o of cells) {
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        let d2 = dx*dx + dy*dy;
+
+        if (d2 < 900) {
+            if (o.type === 2 && !o.dead) localDensity++;
+            if (o.type === 1 && !o.dead) localA++;
+        }
+    }
+
+    // ★ 密度が低く、A が少ない → 新しい巣候補
+    if (localDensity <= 2 && localA === 0) {
+        colonyCenter.x = c.x;
+        colonyCenter.y = c.y;
+    }
+
+if (!colonyCenter.locked && localDensity <= 2 && localA === 0) {
+    colonyCenter.x = c.x;
+    colonyCenter.y = c.y;
+
+    // ★ 一度決まったら固定
+    colonyCenter.locked = true;
+}
+
+
+    // ============================================================
+    // ★ コロニー化判定（近くに仲間が多い）
+    // ============================================================
+    let nearCount = 0;
+    for (const o of cells) {
+        if (o.dead || o.type !== 2 || o === c) continue;
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        if (dx*dx + dy*dy < 400) nearCount++;
+    }
+
+    let dxCol = colonyCenter.x - c.x;
+    let dyCol = colonyCenter.y - c.y;
+    let d2Col = dxCol*dxCol + dyCol*dyCol;
+
+    if (!c.colonyMode && nearCount >= 3 && d2Col < 900) {
+
+        c.colonyMode = true;
+        c.colonyStrength = 3;
+        c.colonyBoost = 0.7;
+
+        // ★ 女王誕生（5%）
+        if (Math.random() < 0.15) {
+            c.isQueen = true;
+            c.colonyStrength = 10;
+            c.colonyBoost = 0.95;
+        }
+
+        return;
+    }
+
+
+
+    // ============================================================
+    // ★ 通常の移動ロジック（あなたの元コード）
+    // ============================================================
+    let bestScore = -Infinity;
+    let bx = c.x, by = c.y;
+
+    const A_NEAR = [];
+    for (const o of cells) {
+        if (o.dead || o.type !== 1) continue;
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        if (dx*dx + dy*dy < 900) A_NEAR.push(o);
+    }
+
+    const B_NEAR = [];
+    for (const o of cells) {
+        if (o.dead || o.type !== 2 || o === c) continue;
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        if (dx*dx + dy*dy < 900) B_NEAR.push(o);
+    }
+
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+
+            let nx = c.x + dx;
+            let ny = c.y + dy;
+
+            if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+            let fleeScore = 0;
+            for (const o of A_NEAR) {
+                let d2 = (o.x - nx)**2 + (o.y - ny)**2;
+                fleeScore += d2 * 0.4;
+            }
+
+            let cohesion = 0;
+            let separation = 0;
+
+            if (B_NEAR.length > 0) {
+                let cxSum = 0, cySum = 0;
+
+                for (const o of B_NEAR) {
+                    let dxB = o.x - nx;
+                    let dyB = o.y - ny;
+                    let d2B = dxB*dxB + dyB*dyB;
+
+                    cxSum += o.x;
+                    cySum += o.y;
+
+                    if (d2B < 25) separation -= 3.0;
+                }
+
+                cxSum /= B_NEAR.length;
+                cySum /= B_NEAR.length;
+
+                let dxC = cxSum - nx;
+                let dyC = cySum - ny;
+                cohesion = -(dxC*dxC + dyC*dyC) * 0.05;
+            }
+
+            let flockScore = cohesion + separation;
+
+            let dCol = Math.sqrt(dxCol*dxCol + dyCol*dyCol);
+            let colonyScore = -dCol * 0.4;
+
+            let envScore =
+                waste[ny][nx] * 1.0 +
+                nutrient[ny][nx] * 1.2 -
+                toxin[ny][nx] * 1.5 +
+                (Math.random() * 0.05);
+
+            let score = fleeScore + flockScore + colonyScore + envScore;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bx = nx;
+                by = ny;
+            }
+        }
+    }
+
+    c.x = bx;
+    c.y = by;
+}
+/////Bのロジックここまで
+
+/////Cのロジックここから
+
+function moveC(c) {
+
+    // ★ 0. C の向きをランダムに（毎ターン）
+    c.dir = Math.floor(Math.random() * 8);
+
+    // --- 1. クラスタがある場合は中心へ向かう ---
+    if (c.clusterId) {
+        const cl = clusters.find(cl => cl.id === c.clusterId);
+        if (cl) {
+            c.x += Math.sign(cl.cx - c.x);
+            c.y += Math.sign(cl.cy - c.y);
+            return;
+        }
+    }
+
+    // --- 2. 近くの C を探して群れの中心へ ---
+    let count = 0;
+    let sumX = 0;
+    let sumY = 0;
+
+    for (const o of cells) {
+        if (o.dead || o === c) continue;
+        if (o.type !== 3) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        let d2 = dx * dx + dy * dy;
+
+        if (d2 <= 25) {
+            count++;
+            sumX += o.x;
+            sumY += o.y;
+        }
+    }
+
+    // --- 3. 仲間がいる場合：群れ中心へ移動 ---
+    if (count > 0) {
+        let tx = Math.round(sumX / count);
+        let ty = Math.round(sumY / count);
+
+        if (toxin[ty][tx] < toxin[c.y][c.x]) {
+            c.x += Math.sign(tx - c.x);
+            c.y += Math.sign(ty - c.y);
+        } else {
+            c.x += (Math.random() < 0.5 ? 1 : -1);
+            c.y += (Math.random() < 0.5 ? 1 : -1);
+        }
+        return;
+    }
+
+    // --- 4. 仲間がいない場合：ランダム移動 ---
+    c.x += (Math.random() * 3 | 0) - 1;
+    c.y += (Math.random() * 3 | 0) - 1;
+
+    // --- 5. 範囲制限 ---
+    if (c.x < 0) c.x = 0;
+    if (c.x >= MAP) c.x = MAP - 1;
+    if (c.y < 0) c.y = 0;
+    if (c.y >= MAP) c.y = MAP - 1;
+}
+
+function updateCLinks() {
+    const CList = cells.filter(o => !o.dead && o.type === 3);
+
+    for (const c of CList) {
+        c.links = [];
+
+        for (const o of CList) {
+            if (o === c) continue;
+
+            let dx = o.x - c.x;
+            let dy = o.y - c.y;
+            let d2 = dx*dx + dy*dy;
+
+            // ★ 距離5以内 → ゆるく連結
+            if (d2 < 25) {
+                c.links.push(o);
+            }
+        }
+    }
+}
+
+/////Cのロジックここまで
+
+////Iのロジックここから
+function moveI(c, leaderI) {
+
+    const viewRange = 12;
+    const sepRange  = 2;
+    let moveChance = 0.2;
+
+    let count = 0;
+    let sumX = 0, sumY = 0;
+    let sepX = 0, sepY = 0;
+    let alignX = 0, alignY = 0;
+
+    let mvX = 0, mvY = 0;
+
+
+    // --- リーダー追従 ---
+    if (leaderI && leaderI !== c) {
+        let dx = leaderI.x - c.x;
+        let dy = leaderI.y - c.y;
+
+        mvX += Math.sign(dx) * 1.0;
+        mvY += Math.sign(dy) * 1.0;
+
+        mvX += (leaderI.vx || 0) * 0.5;
+        mvY += (leaderI.vy || 0) * 0.5;
+    }
+
+    // --- 近くの I を探索 ---
+    for (const o of cells) {
+        if (o === c || o.dead) continue;
+        if (o.type !== TYPE_I) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        let d2 = dx*dx + dy*dy;
+
+        if (d2 <= viewRange * viewRange) {
+            count++;
+            sumX += o.x;
+            sumY += o.y;
+
+            if (d2 < sepRange * sepRange) {
+                sepX -= dx;
+                sepY -= dy;
+            }
+
+            alignX += (o.vx || 0);
+            alignY += (o.vy || 0);
+        }
+    }
+
+    // --- 群れ行動 ---
+    if (count > 0) {
+        let cx = sumX / count;
+        let cy = sumY / count;
+
+        mvX += Math.sign(cx - c.x) * 0.6;
+        mvY += Math.sign(cy - c.y) * 0.6;
+
+        mvX += sepX * 0.1;
+        mvY += sepY * 0.1;
+
+        mvX += alignX * 0.8;
+        mvY += alignY * 0.8;
+    }
+
+    // --- 寄生対象（EvoA）を探索 ---
+    let target = null;
+    let bestD2 = 9999;
+
+    for (const o of cells) {
+        if (o.dead) continue;
+        if (o.type === 1 && o.isEvolved) {
+            let dx = o.x - c.x;
+            let dy = o.y - c.y;
+            let d2 = dx*dx + dy*dy;
+            if (d2 < bestD2 && d2 < 64) {
+                bestD2 = d2;
+                target = o;
+            }
+        }
+    }
+
+    // --- 包囲行動 ---
+    if (target) {
+
+        let dx = target.x - c.x;
+        let dy = target.y - c.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+
+        let surroundDist = 4;
+
+        if (dist < surroundDist) {
+            mvX -= Math.sign(dx) * 0.6;
+            mvY -= Math.sign(dy) * 0.6;
+        }
+
+        if (dist > surroundDist + 2) {
+            mvX += Math.sign(dx) * 0.4;
+            mvY += Math.sign(dy) * 0.4;
+        }
+
+        mvX += -dy * 0.15;
+        mvY +=  dx * 0.15;
+    }
+
+    // --- 汚染方向 ---
+    let bestW = waste[c.y][c.x];
+    let bestX = c.x;
+    let bestY = c.y;
+
+    for (let dy=-1; dy<=1; dy++) {
+        for (let dx=-1; dx<=1; dx++) {
+            let nx = c.x + dx;
+            let ny = c.y + dy;
+            if (nx<0||nx>=MAP||ny<0||ny>=MAP) continue;
+
+            if (waste[ny][nx] > bestW) {
+                bestW = waste[ny][nx];
+                bestX = nx;
+                bestY = ny;
+            }
+        }
+    }
+
+    mvX += Math.sign(bestX - c.x) * 0.6;
+    mvY += Math.sign(bestY - c.y) * 0.6;
+
+    // --- ランダム揺らぎ ---
+    mvX += (Math.random() - 0.5) * 0.2;
+    mvY += (Math.random() - 0.5) * 0.2;
+
+    // --- 速度調整 ---
+    if (Math.random() < moveChance) {
+        c.vx = Math.sign(mvX);
+        c.vy = Math.sign(mvY);
+    } else {
+        c.vx = Math.sign(mvX) * 0.3;
+        c.vy = Math.sign(mvY) * 0.3;
+    }
+
+    c.x = Math.max(0, Math.min(MAP-1, Math.round(c.x + c.vx)));
+    c.y = Math.max(0, Math.min(MAP-1, Math.round(c.y + c.vy)));
+}
+////Iのロジックここまで
+
+/////Eのロジックここから
+// ============================================================
+// ★ E の行動ロジック（汚染環境を好む・毒/廃棄物に引き寄せられる）
+// ============================================================
+// E は「汚れた場所（waste / toxin / nutrient）」を好む。
+// そのため、周囲8方向の中で最もスコアの高い方向へ移動する。
+// 移動確率は 40%（ランダム性を持たせている）。
+function moveE(c) {
+
+    // ------------------------------------------------------------
+    // ★ 0. 40% の確率でしか動かない（E は鈍い生物）
+    // ------------------------------------------------------------
+    if (Math.random() > 0.4) return;
+
+    let bestDx = 0;
+    let bestDy = 0;
+    let bestScore = -9999;
+
+    // ------------------------------------------------------------
+    // ★ 1. 周囲8方向をスキャンして「汚れスコア」を計算
+    // ------------------------------------------------------------
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+
+            if (dx === 0 && dy === 0) continue;
+
+            let nx = c.x + dx;
+            let ny = c.y + dy;
+
+            // ★ 範囲外はスキップ（重要）
+            if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+            // --------------------------------------------------------
+            // ★ 汚れスコア
+            //   waste（廃棄物）を最も好む
+            //   toxin（毒）も好む
+            //   nutrient（栄養）も少し好む
+            // --------------------------------------------------------
+            let score =
+                waste[ny][nx] * 1.5 +   // 廃棄物が多いほど良い
+                toxin[ny][nx] * 0.8 +   // 毒も好き
+                nutrient[ny][nx] * 0.5; // 栄養も少し好き
+
+            // 最良方向を更新
+            if (score > bestScore) {
+                bestScore = score;
+                bestDx = dx;
+                bestDy = dy;
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    // ★ 2. 最良方向へ移動
+    // ------------------------------------------------------------
+    let ox = c.x;
+    let oy = c.y;
+
+    let nx = c.x + bestDx;
+    let ny = c.y + bestDy;
+
+    // ★ 最終範囲制限
+    if (nx < 0) nx = 0;
+    if (nx >= MAP) nx = MAP - 1;
+    if (ny < 0) ny = 0;
+    if (ny >= MAP) ny = MAP - 1;
+
+    // 移動方向を記録（描画用）
+    updateDir(c, ox, oy, nx, ny);
+
+    // 実際に移動
+    c.x = nx;
+    c.y = ny;
+}
+/////Eのロジックここまで
+
+
+
+// ============================================================
+// ★ E が毒を撒く処理（環境汚染）
+// ============================================================
+// E は周囲8マスに毒素をばら撒く。
+// これにより、E の通った場所は毒が蓄積し、他の生物に影響を与える。
+function emitToxin(c) {
+
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+
+            let nx = c.x + dx;
+            let ny = c.y + dy;
+
+            if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+            // ★ 毒素を追加（値は調整可能）
+            toxin[ny][nx] += 0.2;
+        }
+    }
+}
+/////
+
+////////Gの色をランダムにする
+// ------------------------------------------------------------
+// ★ 12色の HSL カラーパレットからランダムに選ぶ
+// ------------------------------------------------------------
+function randomHSLColor() {
+    const group = Math.floor(Math.random() * 12); // 0〜11
+    const h = group * 30; // 30°刻みで12色
+    return `hsl(${h}, 100%, 50%)`;
+}
+
+
+// ------------------------------------------------------------
+// ★ G の色をランダムに割り当てる（色グループを持つ）
+// ------------------------------------------------------------
+function applyRandomColorToG(cell) {
+    if (cell.type === 0) {
+        const group = Math.floor(Math.random() * 12);
+        cell.colorGroup = group; // ← 数値で管理
+        cell.color = `hsl(${group * 30}, 100%, 50%)`;
+    }
+}
+////////Gの色をランダムにする
+
+
+// ------------------------------------------------------------
+//★ 方向更新（移動方向を 0〜7 の整数で表す）
+// ------------------------------------------------------------
+
+      function updateDir(c, ox, oy, nx, ny){
+          var dx = nx - ox;
+          var dy = ny - oy;
+          if(dx===0 && dy===0) return;
+          if(dx===0 && dy===-1) c.dir=0;
+          else if(dx===1 && dy===-1) c.dir=1;
+          else if(dx===1 && dy===0) c.dir=2;
+          else if(dx===1 && dy===1) c.dir=3;
+          else if(dx===0 && dy===1) c.dir=4;
+          else if(dx===-1 && dy===1) c.dir=5;
+          else if(dx===-1 && dy===0) c.dir=6;
+          else if(dx===-1 && dy===-1) c.dir=7;
+      }
+// ------------------------------------------------------------
+//★ 近傍カウント（8近傍）
+// ------------------------------------------------------------
+
+      function countNeighbors(c, list){
+          var cnt = 0;
+          for(var i=0; i<list.length; i++){
+              var o = list[i];
+              if(o===c || o.dead) continue;
+              if(Math.abs(o.x - c.x) <= 1 && Math.abs(o.y - c.y) <= 1) cnt++;
+          }
+          return cnt;
+      }
+// ------------------------------------------------------------
+//★ 三すくみ勝敗判定（A > B > C > A）
+// ------------------------------------------------------------
+
+      function wins(attackerType, defenderType){
+          if(attackerType === 1 && defenderType === 2) return true;
+          if(attackerType === 2 && defenderType === 3) return true;
+          if(attackerType === 3 && defenderType === 1) return true;
+          return false;
+      }
+// ------------------------------------------------------------
+//★ E（汚染生物）の移動ロジック
+// ------------------------------------------------------------
+    function moveE(c){
+    // 40% の確率でしか動かない（鈍い）
+    if(Math.random() > 0.4) return;
+
+    var bestDx = 0;
+    var bestDy = 0;
+    var bestScore = -9999;
+
+    // ------------------------------------------------------------
+    // ★ 周囲8方向の「汚れスコア」を評価
+    // ------------------------------------------------------------
+    for(var dx = -1; dx <= 1; dx++){
+        for(var dy = -1; dy <= 1; dy++){
+            if(dx===0 && dy===0) continue;
+
+            var nx = c.x + dx;
+            var ny = c.y + dy;
+
+            // 範囲制限
+            if(nx < 0) nx = 0;
+            if(nx >= MAP) nx = MAP-1;
+            if(ny < 0) ny = 0;
+            if(ny >= MAP) ny = MAP-1;
+
+            // ★ 汚れスコア
+            var score =
+                waste[ny][nx]*1.5 +   // 廃棄物が最優先
+                toxin[ny][nx]*0.8 +   // 毒も好む
+                nutrient[ny][nx]*0.5; // 栄養も少し好む
+
+            if(score > bestScore){
+                bestScore = score;
+                bestDx = dx;
+                bestDy = dy;
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    // ★ 最良方向へ移動
+    // ------------------------------------------------------------
+    var ox = c.x;
+    var oy = c.y;
+
+    var nx = c.x + bestDx;
+    var ny = c.y + bestDy;
+
+    // 範囲制限
+    if(nx < 0) nx = 0;
+    if(nx >= MAP) nx = MAP-1;
+    if(ny < 0) ny = 0;
+    if(ny >= MAP) ny = MAP-1;
+
+    updateDir(c, ox, oy, nx, ny);
+
+    c.x = nx;
+    c.y = ny;
+}
+
+
+
+    // ------------------------------------------------------------
+    // ★ G（群れ生物）の位置に他の G がいるか確認
+    // ------------------------------------------------------------
+function cellAt(x, y) {
+    for (const c of cells) {
+        if (!c.dead && c.x === x && c.y === y) {
+            return c;
+        }
+    }
+    return null;
+}
+
+    // ------------------------------------------------------------
+    // ★ G（群れ生物）の行動ロジック（Boids + 環境評価 + 色グループ）
+    // ------------------------------------------------------------
+function moveG(c) {
+
+    // ------------------------------------------------------------
+    // ★ 1. 同じ色グループの仲間を探索
+    // ------------------------------------------------------------
+    const viewRange = 10;
+    const sepRange  = 2;
+    const neighbors = [];
+
+    for (const o of cells) {
+        if (o === c || o.dead || o.type !== 0) continue;
+        if (o.colorGroup !== c.colorGroup) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        let d2 = dx*dx + dy*dy;
+
+        if (d2 <= viewRange * viewRange)
+            neighbors.push(o);
+    }
+
+    // ------------------------------------------------------------
+    // ★ 2. Boids の 3要素（分離・整列・結合）
+    // ------------------------------------------------------------
+    let sepX = 0, sepY = 0;
+    let aliX = 0, aliY = 0;
+    let cohX = 0, cohY = 0;
+
+    let density = neighbors.length;
+
+    for (const n of neighbors) {
+        let dx = n.x - c.x;
+        let dy = n.y - c.y;
+        let d2 = dx*dx + dy*dy;
+
+        // 分離（近すぎる仲間を避ける）
+        if (d2 < sepRange * sepRange) {
+            sepX -= dx * (1 + density * 0.1);
+            sepY -= dy * (1 + density * 0.1);
+        }
+
+        // 整列（方向を合わせる）
+        aliX += n.dirX || 0;
+        aliY += n.dirY || 0;
+
+        // 結合（群れ中心へ）
+        cohX += dx * (1 + (5 - density) * 0.1);
+        cohY += dy * (1 + (5 - density) * 0.1);
+    }
+
+    if (density > 0) {
+        aliX /= density;
+        aliY /= density;
+        cohX /= density;
+        cohY /= density;
+    }
+
+    // ------------------------------------------------------------
+    // ★ 3. 群れが密集しすぎたら分裂
+    // ------------------------------------------------------------
+    const SPLIT_THRESHOLD = 25;
+    let split = (density > SPLIT_THRESHOLD);
+
+    // ------------------------------------------------------------
+    // ★ 4. 環境圧（毒の強さ）
+    // ------------------------------------------------------------
+    let envPressure = 0;
+    if (toxin[c.y] && toxin[c.y][c.x] !== undefined) {
+        envPressure = toxin[c.y][c.x] * 0.8;
+    }
+
+    // ------------------------------------------------------------
+    // ★ 5. 8方向の移動候補を評価
+    // ------------------------------------------------------------
+    let bestScore = -9999;
+    let bx = c.x, by = c.y;
+
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+
+            let nx = c.x + dx;
+            let ny = c.y + dy;
+
+            // 範囲外スキップ
+            if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+            // nutrient / toxin / waste の安全チェック
+            if (!nutrient[ny] || nutrient[ny][nx] === undefined) continue;
+            if (!toxin[ny]    || toxin[ny][nx]    === undefined) continue;
+            if (!waste[ny]    || waste[ny][nx]    === undefined) continue;
+
+            // --------------------------------------------------------
+            // ★ 環境スコア（栄養を好み、毒と廃棄物を嫌う）
+            // --------------------------------------------------------
+            let score =
+                nutrient[ny][nx] * 1.0
+                - toxin[ny][nx] * 1.2
+                - waste[ny][nx] * 0.3;
+
+            // --------------------------------------------------------
+            // ★ C（分解者）から逃げる
+            // --------------------------------------------------------
+            for (const o of cells) {
+                if (o.type === 3 && !o.dead) {
+                    let dxp = o.x - nx;
+                    let dyp = o.y - ny;
+                    let dist2 = dxp*dxp + dyp*dyp;
+
+                    if (dist2 < 36)
+                        score -= (36 - dist2) * 0.3;
+                }
+            }
+
+            // --------------------------------------------------------
+            // ★ 群れが密集 → 分裂モード
+            // --------------------------------------------------------
+            if (split) {
+                score += (sepX * dx + sepY * dy) * 0.05;
+                score -= (cohX * dx + cohY * dy) * 0.3;
+                score += (Math.random() - 0.5) * 1.2;
+            }
+
+            // --------------------------------------------------------
+            // ★ G 同士の衝突回避
+            // --------------------------------------------------------
+            let other = cellAt(nx, ny);
+            if (other && other.type === 0 && other !== c) {
+                score -= 9999;
+            }
+
+            // --------------------------------------------------------
+            // ★ Boids の影響
+            // --------------------------------------------------------
+            score +=
+                (sepX * dx + sepY * dy) * 0.01 +
+                (aliX * dx + aliY * dy) * 0.15 +
+                (cohX * dx + cohY * dy) * 0.4;
+
+            // --------------------------------------------------------
+            // ★ ランダム性
+            // --------------------------------------------------------
+            score += (Math.random() - 0.5) * 0.4;
+
+            // --------------------------------------------------------
+            // ★ 粒子雨の影響（青・黄）
+            // --------------------------------------------------------
+            if (particleRain && (particleRain.type === "blue" || particleRain.type === "yellow")) {
+                let dxp = particleRain.x - nx;
+                let dyp = particleRain.y - ny;
+                let dist = Math.sqrt(dxp*dxp + dyp*dyp);
+
+                if (dist < particleRain.radius) {
+                    score += (particleRain.radius - dist) * particleRain.intensity * 2.0;
+                }
+            }
+
+            // --------------------------------------------------------
+            // ★ 最良スコア更新
+            // --------------------------------------------------------
+            if (score > bestScore) {
+                bestScore = score;
+                bx = nx;
+                by = ny;
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    // ★ 6. 移動方向ベクトルを更新（滑らかに動く）
+    // ------------------------------------------------------------
+    c.dirX = c.dirX * 0.7 + (bx - c.x) * 0.3;
+    c.dirY = c.dirY * 0.7 + (by - c.y) * 0.3;
+
+    // ------------------------------------------------------------
+    // ★ 7. 実際に移動
+    // ------------------------------------------------------------
+    c.x = bx;
+    c.y = by;
+
+    // ------------------------------------------------------------
+    // ★ 8. 群れ密度に応じてエネルギー増加
+    // ------------------------------------------------------------
+    c.energy += density * 0.02;
+}
+
+
+
+
+// ============================================================
+// ★ 粒子雨エフェクトの描画
+// ============================================================
+// particleRain が存在する場合、画面に波紋と光の円を描く。
+// - 波紋：外側に広がる円（stroke）
+// - 光の円：中心から広がるグラデーション（fill）
+// ============================================================
+
+if (particleRain) {
+
+    // ------------------------------------------------------------
+    // ★ 1. 波紋（外側に広がる円）
+    // ------------------------------------------------------------
+    let t = (200 - particleRain.duration) * 0.5;
+
+    ctx.strokeStyle = "rgba(170,255,255,0.2)";
+    ctx.beginPath();
+    ctx.arc(
+        particleRain.x * CELL,
+        particleRain.y * CELL,
+        t,
+        0, Math.PI * 2
+    );
+    ctx.stroke();
+
+
+    // ------------------------------------------------------------
+    // ★ 2. 光の円（中心から広がるグラデーション）
+    // ------------------------------------------------------------
+    // ★ ここがあなたのコードでは欠けていた部分
+    let grad = ctx.createRadialGradient(
+        particleRain.x * CELL,
+        particleRain.y * CELL,
+        0,
+        particleRain.x * CELL,
+        particleRain.y * CELL,
+        particleRain.radius * CELL
+    );
+
+    grad.addColorStop(0, "rgba(170,255,255,0.35)");
+    grad.addColorStop(1, "rgba(170,255,255,0)");
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(
+        particleRain.x * CELL,
+        particleRain.y * CELL,
+        particleRain.radius * CELL,
+        0, Math.PI * 2
+    );
+    ctx.fill();
+}
+
+
+// ============================================================
+// ★ drawSpikes：トゲ描画関数
+// ============================================================
+// A の進化で増える「トゲ」を描画する。
+// - spikes：トゲの本数
+// - size：トゲの長さ
+// - pattern：配置パターン（even / random / cluster）
+// - jitter：角度の揺らぎ
+// - density：密度補正（本数を増減）
+//
+// A の進化レベルに応じて spikes や size が変化し、
+// この関数が「見た目の進化」を実現している。
+// ============================================================
+
+function drawSpikes(ctx2, cx, cy, spikes, size, opts = {}) {
+
+    // ------------------------------------------------------------
+    // ★ トゲが 0 本なら何もしない
+    // ------------------------------------------------------------
+    if (!spikes || spikes <= 0) return;
+
+    // ------------------------------------------------------------
+    // ★ オプション設定
+    // ------------------------------------------------------------
+    const jitter  = opts.jitter  || 0;          // 角度の揺らぎ（度数）
+    const pattern = opts.pattern || "even";     // even / random / cluster
+    const density = opts.density || 1.0;        // 密度補正（本数倍率）
+
+    // 実際に描画する本数
+    const count = Math.max(1, Math.floor(spikes * density));
+
+    // ------------------------------------------------------------
+    // ★ 描画開始（中心へ移動）
+    // ------------------------------------------------------------
+    ctx2.save();
+    ctx2.translate(cx, cy);
+
+    // ------------------------------------------------------------
+    // ★ トゲを 1 本ずつ描画
+    // ------------------------------------------------------------
+    for (let i = 0; i < count; i++) {
+
+        // --------------------------------------------------------
+        // ★ 角度決定（パターン別）
+        // --------------------------------------------------------
+        let angle;
+
+        if (pattern === "random") {
+            // 完全ランダム
+            angle = Math.random() * Math.PI * 2;
+
+        } else if (pattern === "cluster") {
+            // 6方向にクラスター化（蜂の巣のような配置）
+            const base = (Math.PI * 2 / 6) * (i % 6);
+            angle = base + (Math.random() - 0.5) * (jitter * Math.PI / 180);
+
+        } else {
+            // even（均等配置）
+            angle = (Math.PI * 2 / count) * i;
+        }
+
+        // --------------------------------------------------------
+        // ★ トゲの長さ
+        // --------------------------------------------------------
+        const len = size;
+
+        // --------------------------------------------------------
+        // ★ トゲの先端座標
+        // --------------------------------------------------------
+        const x2 = Math.cos(angle) * len;
+        const y2 = Math.sin(angle) * len;
+
+        // --------------------------------------------------------
+        // ★ トゲを描画
+        // --------------------------------------------------------
+        ctx2.beginPath();
+        ctx2.moveTo(0, 0);
+        ctx2.lineTo(x2, y2);
+        ctx2.stroke();
+    }
+
+    // ------------------------------------------------------------
+    // ★ 描画終了
+    // ------------------------------------------------------------
+    ctx2.restore();
+}
+
+
+
+    // ============================================================
+// ★ drawClusters：クラスター（群れ）の輪郭を描画
+// ============================================================
+// clusters[] に登録されたクラスターごとに、
+// - クラスターを構成する細胞の位置を線で結んで多角形を描く
+// - その多角形を半透明で塗りつぶす
+// - クラスターの中心点（cx, cy）に白い点を描く
+//
+// B や C の群れが視覚的に「まとまり」として見えるようにする。
+// ============================================================
+
+function drawClusters(ctx2){
+    // クラスターが存在しない場合は何もしない
+    if (!clusters || clusters.length === 0) return;
+
+    ctx2.save();
+    ctx2.lineWidth = 2;
+
+    // ------------------------------------------------------------
+    // ★ クラスターごとに描画
+    // ------------------------------------------------------------
+    for (const cl of clusters) {
+
+        // 細胞数が少ないクラスターは描画しない
+        if (!cl.cells || cl.cells.length < 3) continue;
+
+        // 輪郭線と塗りつぶしの色
+        ctx2.strokeStyle = "rgba(255,255,255,0.4)";
+        ctx2.fillStyle   = "rgba(255,255,255,0.08)";
+
+        ctx2.beginPath();
+
+        // --------------------------------------------------------
+        // ★ クラスターを構成する細胞を線で結ぶ
+        // --------------------------------------------------------
+        for (let i = 0; i < cl.cells.length; i++) {
+            const c = cl.cells[i];
+
+            // 細胞の中心座標（描画座標）
+            const px = c.x * CELL + CELL / 2;
+            const py = c.y * CELL + CELL / 2;
+
+            if (i === 0) ctx2.moveTo(px, py);
+            else         ctx2.lineTo(px, py);
+        }
+
+        // 多角形を閉じる
+        ctx2.closePath();
+
+        // 塗りつぶし → 輪郭線
+        ctx2.fill();
+        ctx2.stroke();
+
+        // --------------------------------------------------------
+        // ★ クラスター中心点を描画
+        // --------------------------------------------------------
+        const cxp = cl.cx * CELL + CELL / 2;
+        const cyp = cl.cy * CELL + CELL / 2;
+
+        ctx2.fillStyle = "rgba(255,255,255,0.7)";
+        ctx2.beginPath();
+        ctx2.arc(cxp, cyp, 3, 0, Math.PI * 2);
+        ctx2.fill();
+    }
+
+    ctx2.restore();
+}
+
+
+     // ============================================================
+// ★ resolveCombat：戦闘処理（捕食・吸収・勝敗）
+// ============================================================
+// c：戦闘を行う個体
+// allCells：全個体リスト
+//
+// この関数は「c が周囲1マス以内の相手と戦闘する」処理。
+// ここでは C（分解者）の捕食ロジックが実装されている。
+// ============================================================
+
+function resolveCombat(c, allCells){
+    var i, o;
+
+    for (i = 0; i < allCells.length; i++) {
+        o = allCells[i];
+
+        // --------------------------------------------------------
+        // ★ 自分自身 or 死亡個体は無視
+        // --------------------------------------------------------
+        if (o === c || o.dead) continue;
+
+        // --------------------------------------------------------
+        // ★ 戦闘範囲：8近傍（1マス以内）
+        // --------------------------------------------------------
+        if (Math.abs(o.x - c.x) > 1 || Math.abs(o.y - c.y) > 1) continue;
+
+        // ========================================================
+        // ★ C の捕食ロジック（分解者）
+        // ========================================================
+        // C は「自分以外の全タイプ」を捕食する
+        // ただし TYPE_E（汚染生物）は捕食しない
+        // ========================================================
+        if (c.type === 3 && o.type !== 3 && o.type !== TYPE_E) {
+
+            // ----------------------------------------------------
+            // ★ 捕食履歴（absorbed）を初期化
+            // ----------------------------------------------------
+            if (!c.absorbed) c.absorbed = {0:false, 1:false, 2:false};
+
+            // 捕食したタイプを記録
+            c.absorbed[o.type] = true;
+
+            // ----------------------------------------------------
+            // ★ 相手を殺す（捕食成功）
+            // ----------------------------------------------------
+            o.dead = true;
+
+            // ----------------------------------------------------
+            // ★ エネルギー吸収（相手の15%）
+            // ----------------------------------------------------
+            const gain = o.energy * 0.15;
+            c.energy += gain;
+            c.energyFromPredation += gain;
+
+            // ----------------------------------------------------
+            // ★ 形状進化（トゲを吸収して混ざる）
+            // ----------------------------------------------------
+            if (!c.shape) c.shape = {spikes:0, elongation:1, colorShift:0};
+            if (!o.shape) o.shape = {spikes:0, elongation:1, colorShift:0};
+
+            // トゲの本数を混合（70% 自分 + 30% 相手 + ランダム）
+            c.shape.spikes =
+                Math.floor(
+                    c.shape.spikes * 0.7 +
+                    o.shape.spikes * 0.3 +
+                    (Math.random() * 2 - 1)
+                );
+
+            // トゲ本数は最低0
+            c.shape.spikes = Math.max(0, c.shape.spikes);
+
+            // ----------------------------------------------------
+            // ★ サイズ増加（最大 MAX_SIZE）
+            // ----------------------------------------------------
+            c.size = Math.min(c.size + 0.5, MAX_SIZE);
+
+            // ----------------------------------------------------
+            // ★ 捕食した場所に廃棄物を残す
+            // ----------------------------------------------------
+            waste[o.y][o.x] += 0.3;
+
+            continue;
+        }
+
+        // ========================================================
+        // ★ 他の戦闘ロジック（A vs B vs C の三すくみなど）
+        //   → この後に続く（あなたのコードの別部分）
+        // ========================================================
+   
+
+// ★★★ I → EvoA 捕食（通常Aは無視） ★★★
+if (c.type === TYPE_I && o.type === 1) {
+
+    // EvoA 以外は無視
+    if (!o.isEvolved) {
+        continue; // 戦闘しない
+    }
+
+    // 捕食成功
+    o.dead = true;
+
+    // I の成長
+    c.exp += 3;
+    c.energy += 0.3;
+
+    // 毒素を少し撒く（任意）
+    toxin[o.y][o.x] += 0.1;
+
+    continue;
+}
+
+
+              // 通常三すくみ
+              if(wins(o.type, c.type)){
+                  let revengeChance = (c.shape ? c.shape.spikes : 0) * 0.08;
+                  if(Math.random() < revengeChance){
+                      o.dead = true;
+                      c.energy += 0.3;
+                      //log2("返り討ち：トゲが捕食者を貫いた", "#ffa500");
+                      return;
+                  }
+                  c.dead = true;
+                  o.energy += 0.5;
+                  break;
+              }
+
+              if(wins(c.type, o.type)){
+                  o.dead = true;
+                  c.energy += 0.5;
+                  if(c.type !== TYPE_E){
+                      if(!c.shape) c.shape = {spikes:0, elongation:1, colorShift:0};
+                      if(Math.random() < 0.3){
+                          c.shape.spikes += 1;
+                          applySpikeCostPenalty(c);
+                      }
+                  }
+                  continue;
+              }
+          }
+
+          // C → E 昇華
+          if(!c.dead && c.type === 3){
+              if(!c.absorbed) c.absorbed = {0:false, 1:false, 2:false};
+              let absorbedCount = (c.absorbed[0]?1:0) + (c.absorbed[1]?1:0) + (c.absorbed[2]?1:0);
+              if(absorbedCount >= 3 && c.energy > 10.0 && Math.random() < 0.05){
+
+                  c.dead = true;
+                  let eType = makeCell(c.x, c.y, TYPE_E);
+                  eType.energy = c.energy * 0.6;
+                  eType.shape = {
+                      spikes: c.shape ? c.shape.spikes : 0,
+                      elongation: c.shape ? c.shape.elongation : 1,
+                      colorShift: c.shape ? c.shape.colorShift : 0
+                  };
+                  applySpikeCostPenalty(eType);
+                  cells.push(eType);
+                  eCount++;
+                  log3("★ 捕食の果てに：CタイプがEへと昇華（トゲ継承）", "#ffffff");
+              }
+          }
+
+
+// E防御・反撃
+          if(!c.dead && c.type === TYPE_E && c.traits){
+              for(i=0; i<allCells.length; i++){
+                  o = allCells[i];
+                  if(o === c || o.dead) continue;
+                  if(Math.abs(o.x - c.x) > 1 || Math.abs(o.y - c.y) > 1) continue;
+                  if(wins(o.type, c.type)){
+                      if(c.traits.defense && Math.random()<0.5){
+                          //log2("Eタイプが攻撃を防いだ", "#cc88ff");
+                      } else if(c.traits.attack){
+                          o.dead = true;
+                          //log2("Eタイプが反撃して撃退", "#cc88ff");
+                      } else {
+                          c.dead = true;
+                      }
+                  }
+              }
+          }
+      }
+
+      function rebuildClusters(cells){
+          clusters = [];
+          nextClusterId = 1;
+
+          for(const c of cells){
+              c.clusterId = null;
+          }
+
+          const predators = cells.filter(c =>
+              !c.dead &&
+              c.type === 3 &&
+              c.energyFromPredation >= 1.0
+          );
+
+          for(let i=0;i<predators.length;i++){
+              const a = predators[i];
+              if(a.clusterId !== null) continue;
+
+              for(let j=i+1;j<predators.length;j++){
+                  const b = predators[j];
+                  if(b.clusterId !== null) continue;
+
+                  const dx1 = a.x - b.x;
+                  const dy1 = a.y - b.y;
+                  if(dx1*dx1 + dy1*dy1 > 4) continue;
+
+                  for(let k=j+1;k<predators.length;k++){
+                      const c = predators[k];
+                      if(c.clusterId !== null) continue;
+
+                      const dx2 = a.x - c.x;
+                      const dy2 = a.y - c.y;
+                      const dx3 = b.x - c.x;
+                      const dy3 = b.y - c.y;
+
+                      if(dx2*dx2 + dy2*dy2 > 4) continue;
+                      if(dx3*dx3 + dy3*dy3 > 4) continue;
+
+                      const id = nextClusterId++;
+                      a.clusterId = id;
+                      b.clusterId = id;
+                      c.clusterId = id;
+
+                      const cl = new Cluster(id);
+                      cl.cells.push(a,b,c);
+                      cl.updateCenterAndEnergy();
+                      clusters.push(cl);
+
+                      break;
+                  }
+              }
+          }
+      }
+
+function resolveClusterCombat(cells) {
+
+          // クラスター vs 単細胞
+          for (const cluster of clusters) {
+              for (const c of cells) {
+                  if (c.dead) continue;
+                  if (c.clusterId !== null) continue;
+                  const dx = c.x - cluster.cx;
+                  const dy = c.y - cluster.cy;
+                  if (dx*dx + dy*dy <= 1) {
+                      c.dead = true;
+                  }
+              }
+          }
+
+          // クラスター寿命：死滅として処理
+          for(const cl of clusters){
+              cl.age++;
+              if(cl.age > 30){
+                  for(const c of cl.cells){
+                      if(!c.dead){
+                          c.dead = true;
+                          waste[c.y][c.x] += 0.3;
+                      }
+                      c.clusterId = null;
+                  }
+                  cl.cells = [];
+              }
+          }
+
+          // C/E 集団攻撃
+          for (const cluster of clusters) {
+              if(!cluster.cells || cluster.cells.length === 0) continue;
+
+              let cCount = 0;
+              let eCountLocal = 0;
+              const attackersC = [];
+              const attackersE = [];
+
+              for (const c of cells) {
+                  if (c.dead) continue;
+                  if (c.clusterId !== null) continue;
+
+                  const dx = c.x - cluster.cx;
+                  const dy = c.y - cluster.cy;
+                  if (dx*dx + dy*dy <= 4) {
+                      if (c.type === 3) {
+                          cCount++;
+                          attackersC.push(c);
+                      } else if (c.type === TYPE_E) {
+                          eCountLocal++;
+                          attackersE.push(c);
+                      }
+                  }
+              }
+
+              let killed = false;
+
+              if (cCount >= 3 && !killed) {
+                  killed = true;
+                  for (const cell of cluster.cells) cell.dead = true;
+                  const gain = cluster.energy / attackersC.length;
+                  for (const ac of attackersC) ac.energy += gain;
+              }
+
+              if (eCountLocal >= 3 && !killed) {
+                  killed = true;
+                  for (const cell of cluster.cells) cell.dead = true;
+                  const gain = cluster.energy / attackersE.length;
+                  for (const ae of attackersE) ae.energy += gain;
+              }
+          }
+      }
+/////////////////////////////////////////////countTypesここから////////////////////////////////////////////
+
+// ============================================================
+// ★ countTypes：生態系の個体数を集計する
+// ============================================================
+// - G / A / B / C / E / F / I の生存個体数を数える
+// - A の中で「進化済み（isEvolved=true）」の個体数も数える
+// - H は未使用のため 0 のまま返す
+//
+// 返り値：
+// { g, a, b, c, e, f, h, i, evolvedA }
+// ============================================================
+
+function countTypes() {
+
+    // 各タイプのカウンタ
+    let g = 0, a = 0, b = 0, c = 0, e = 0, f = 0, h = 0, i = 0;
+
+    // 進化済み A の数
+    let evolvedA = 0;
+
+    // ------------------------------------------------------------
+    // ★ 全個体を走査
+    // ------------------------------------------------------------
+    for (let o of cells) {
+
+        // 死亡個体はカウントしない
+        if (o.dead) continue;
+
+        switch (o.type) {
+
+            case TYPE_G:
+                g++;
+                break;
+
+            case TYPE_A:
+                a++;
+                if (o.isEvolved) evolvedA++;
+                break;
+
+            case TYPE_B:
+                b++;
+                break;
+
+            case TYPE_C:
+                c++;
+                break;
+
+            case TYPE_E:
+                e++;
+                break;
+
+            case TYPE_F:
+                f++;
+                break;
+
+            case TYPE_I:
+                i++;
+                break;
+
+            // TYPE_H は未使用
+            // case TYPE_H: h++; break;
+        }
+    }
+
+    // ------------------------------------------------------------
+    // ★ 結果をまとめて返す
+    // ------------------------------------------------------------
+    return { g, a, b, c, e, f, h, i, evolvedA };
+}
+
+
+
+/////////////////////////////////////////////countTypesここまで////////////////////////////////////////////
+
+///////////////////////////////////////////// function stepここから////////////////////////////////////////////
+function step() {
+
+    // ------------------------------------------------------------
+    // ★ シミュレーション停止中なら何もしない
+    // ------------------------------------------------------------
+    if (!running) return;
+
+    turnCount++;
+
+    // ------------------------------------------------------------
+    // ★ 初回ターンだけ I を中央にスポーン
+    // ------------------------------------------------------------
+    if (turnCount === 1) {
+        let i0 = makeCell(Math.floor(MAP/2), Math.floor(MAP/2), TYPE_I);
+        cells.push(i0);
+    }
+
+    // ------------------------------------------------------------
+    // ★ newCells：分裂などで新しく生まれる細胞
+    // ★ surv：生き残った細胞
+    // ------------------------------------------------------------
+    let newCells = [];
+    let surv = [];
+
+    // 現在の生存数（後で密度ストレスなどに使う）
+    const baseAliveCount = cells.filter(c => !c.dead).length;
+
+    // ------------------------------------------------------------
+    // ★ 全細胞ループ（行動・進化・死亡判定など）
+    // ------------------------------------------------------------
+    for (let i = 0; i < cells.length; i++) {
+
+        let c = cells[i];
+        if (c.dead) continue;   // 死亡個体はスキップ
+
+
+        // ========================================================
+        // ★ A の進化チェック（最適な位置）
+        // ========================================================
+        // A は exp が一定以上になると進化する
+        // checkEvolution(c) が true → evolveA(c) を実行
+        // evolveA は A の形状・能力を変化させる
+        // ========================================================
+        if (checkEvolution(c)) {
+            evolveA(c);
+        }
+
+
+// ------------------------------------------------------------
+// ★ 全個体の座標を強制的に範囲内に収める（最重要）
+// ------------------------------------------------------------
+// 移動ロジックで範囲外に出る可能性があるため、
+// step() の最初に必ず座標を補正しておく。
+if (c.x < 0) c.x = 0;
+if (c.x >= MAP) c.x = MAP - 1;
+if (c.y < 0) c.y = 0;
+if (c.y >= MAP) c.y = MAP - 1;
+
+
+// ------------------------------------------------------------
+// ★ 年齢を進める
+// ------------------------------------------------------------
+c.age++;
+
+
+// ============================================================
+// ★ 寿命処理（環境依存 + 進化ボーナス）
+// ============================================================
+
+// ------------------------------------------------------------
+// 1. 最大寿命を計算
+// ------------------------------------------------------------
+// calcMaxLife(c) は「タイプ別の基本寿命」を返す。
+// さらに A の進化などで maxLifeBonus が付く。
+c.maxLife = calcMaxLife(c) + (c.maxLifeBonus || 0);
+
+
+// ------------------------------------------------------------
+// 2. 寿命を超えたら死亡
+// ------------------------------------------------------------
+if (c.age > c.maxLife) {
+    c.dead = true;
+}
+
+
+// ------------------------------------------------------------
+// 3. 栄養が多い場所では寿命が回復する
+// ------------------------------------------------------------
+// nutrient が 0.7 以上の場所は「栄養豊富な土地」。
+// そこにいると age が減少し、寿命が延びる効果がある。
+let nut = nutrient[c.y][c.x];
+
+if (nut > 0.7) {
+    c.age -= 0.2;   // 寿命回復
+    if (c.age < 0) c.age = 0;
+}
+
+
+      // ============================================================
+// ★ Fタイプ：寿命で死ぬときに「恵み」を残す特殊個体
+// ============================================================
+// F は毒素を浄化しながら生き、寿命を迎えると
+// 周囲に大量の栄養と G をばら撒く「恵みの存在」。
+// ============================================================
+
+if (c.type === TYPE_F) {
+
+    // ------------------------------------------------------------
+    // ★ 毒素を浄化（F は環境改善者）
+    // ------------------------------------------------------------
+    toxin[c.y][c.x] = Math.max(0, toxin[c.y][c.x] - 0.01);
+
+
+    // ------------------------------------------------------------
+    // ★ 寿命を迎えた場合（F の最大寿命は maxAge）
+    // ------------------------------------------------------------
+    if (c.age > c.maxAge) {
+
+        // --------------------------------------------------------
+        // ★ 周囲5×5（半径2）に恵みをばら撒く
+        // --------------------------------------------------------
+        for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+
+                let nx = c.x + dx;
+                let ny = c.y + dy;
+
+                // 範囲外は無視
+                if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+                // ----------------------------------------------------
+                // ★ 栄養を増やす（0.5）
+                // ----------------------------------------------------
+                nutrient[ny][nx] += 0.5;
+
+                // ----------------------------------------------------
+                // ★ 30% の確率で G をスポーン
+                // ----------------------------------------------------
+                if (Math.random() < 0.3) {
+                    let gFromF = makeCell(nx, ny, TYPE_G);
+                    applyRandomColorToG(gFromF);
+                    cells.push(gFromF);
+                }
+            }
+        }
+
+        // --------------------------------------------------------
+        // ★ ログ出力
+        // --------------------------------------------------------
+        log3("Fタイプが寿命を迎え、世界に恵みを残した", "#55ff55");
+
+        // --------------------------------------------------------
+        // ★ F は死ぬ
+        // --------------------------------------------------------
+        c.dead = true;
+
+    } else {
+
+        // --------------------------------------------------------
+               // ★ まだ寿命ではない → 生存リストへ
+        // --------------------------------------------------------
+        surv.push(c);
+    }
+
+    // F の処理はここで完了
+    continue;
+}
+
+
+      // ============================================================
+// ★ 移動フェーズ：タイプごとに異なる移動ロジックを実行
+// ============================================================
+// ここは生態系の“行動”を決める最重要ブロック。
+// 各タイプは独自の moveX() を持ち、行動パターンが異なる。
+// ============================================================
+
+// --- A（捕食者） ---
+if (c.type === 1) {
+    moveA(c);
+}
+
+// --- C（分解者 / 捕食者） ---
+else if (c.type === 3) {
+    moveC(c);
+}
+
+// --- E（汚染生物 / 特殊進化体） ---
+else if (c.type === TYPE_E) {
+
+    // 低確率で毒素を撒く（E の環境汚染能力）
+    if (Math.random() < 0.005) emitToxin(c);
+
+    moveE(c);
+}
+
+// --- G（草食 / 基礎生物） ---
+else if (c.type === 0) {
+    moveG(c);
+
+    // G が MEG を吸収する特殊処理（存在する場合のみ）
+    if (typeof gAbsorbMEG === 'function') gAbsorbMEG(c);
+}
+
+// --- B（社会性生物） ---
+else if (c.type === 2) {
+    moveB(c);
+}
+
+// --- I（感染体 / 進化Aの天敵） ---
+else if (c.type === TYPE_I) {
+    moveI(c);   // ★ I の行動は特殊で複雑
+}
+
+// --- その他（未定義タイプ） → ランダム移動 ---
+else {
+
+    let ox = c.x, oy = c.y;
+
+    // -1, 0, +1 のランダム移動
+    let dx = (Math.random() * 3 | 0) - 1;
+    let dy = (Math.random() * 3 | 0) - 1;
+
+    let nx = ox + dx;
+    let ny = oy + dy;
+
+    // 範囲外補正
+    if (nx < 0) nx = 0;
+    if (nx >= MAP) nx = MAP - 1;
+    if (ny < 0) ny = 0;
+    if (ny >= MAP) ny = MAP - 1;
+
+    // 移動方向を記録（描画用）
+    updateDir(c, ox, oy, nx, ny);
+
+    // 座標更新
+    c.x = nx;
+    c.y = ny;
+}
+
+
+// ============================================================
+// ★ 移動後の座標を強制的に範囲内に収める（最重要）
+// ============================================================
+// どの moveX() がどれだけ暴れても、最後に必ず補正する。
+// これがないと配列外アクセスでクラッシュする。
+if (c.x < 0) c.x = 0;
+if (c.x >= MAP) c.x = MAP - 1;
+if (c.y < 0) c.y = 0;
+if (c.y >= MAP) c.y = MAP - 1;
+
+
+/////Aの進化判定ここから
+
+if (c.type === 1) {
+
+  // A の行動
+        moveA(c);
+
+        // ★ exp に応じて形状が変わる無段階進化
+        evolveA(c);
+
+    // 長寿Aだけが進化判定を受ける
+    if (c.age > c.maxLife * 0.8) {
+        // 長寿Aの中でさらに確率判定
+        if (Math.random() < 0.001) {
+            evolveA(c);
+        }
+    }
+}
+//////Aの進化判定ここまで
+
+      // ============================================================
+// ★ Eタイプ（汚染生物）の分裂処理
+// ============================================================
+// 条件：
+// 1. E のエネルギーが ENERGY_DIV を超える
+// 2. 全体の個体数が CAPACITY を超えていない
+//
+// E は C の昇華体であり、強力な個体。
+// 分裂時に形状（トゲ・伸長・色変化）をランダム継承する。
+// ============================================================
+
+if (c.type === TYPE_E &&
+    c.energy > ENERGY_DIV &&
+    (baseAliveCount + newCells.length) < CAPACITY) {
+
+    // ------------------------------------------------------------
+    // ★ 親のエネルギーを 40% に減らす（分裂コスト）
+    // ------------------------------------------------------------
+    c.energy *= 0.4;
+
+    // ------------------------------------------------------------
+    // ★ 子E を生成（位置は親と同じ）
+    // ------------------------------------------------------------
+    let childE = makeCell(c.x, c.y, TYPE_E);
+
+    // ------------------------------------------------------------
+    // ★ 形状を継承しつつランダム変異
+    // ------------------------------------------------------------
+    childE.shape = {
+        // トゲ：親 ±1 のランダム変異（最低0）
+        spikes: Math.max(0,
+            c.shape.spikes +
+            Math.floor(Math.random() * 3) - 1
+        ),
+
+        // 伸長：±5% のランダム変異
+        elongation: c.shape.elongation *
+            (0.95 + Math.random() * 0.1),
+
+        // 色変化：±5% のランダム変異
+        colorShift: c.shape.colorShift *
+            (0.95 + Math.random() * 0.1)
+    };
+
+    // ------------------------------------------------------------
+    // ★ トゲのコストを適用（強いほど維持コストが高い）
+    // ------------------------------------------------------------
+    applySpikeCostPenalty(childE);
+
+    // ------------------------------------------------------------
+    // ★ 新しい個体として登録
+    // ------------------------------------------------------------
+    newCells.push(childE);
+
+    // このターンの処理はここで終了
+    continue;
+}
+
+
+       // ============================================================
+// ★ 栄養・廃棄物・エネルギー代謝フェーズ
+// ============================================================
+// ここは生態系の“代謝”を司る最重要ブロック。
+// - nutrient：土地の栄養
+// - waste：廃棄物（死体・排泄物）
+// - E：廃棄物を直接エネルギーに変換
+// - hasMito：ミトコンドリアによる追加エネルギー
+// - ENERGY_DECAY：自然減衰
+// ============================================================
+
+
+// ------------------------------------------------------------
+// ★ 1. 土地の栄養を吸収（全タイプ共通）
+// ------------------------------------------------------------
+let nval = nutrient[c.y][c.x];
+
+// 栄養の10%をエネルギーとして吸収
+c.energy += nval * 0.1;
+
+// 土地の栄養を少し減らす
+nutrient[c.y][c.x] = Math.max(0, nval - 0.005);
+
+
+// ------------------------------------------------------------
+// ★ 2. 廃棄物 → 栄養への変換（自然分解）
+// ------------------------------------------------------------
+// waste が多いほど、少しずつ nutrient に変換される
+if (waste[c.y][c.x] > 0.1) {
+
+    // 廃棄物の 2% が栄養に変換される
+    let seep = waste[c.y][c.x] * 0.02;
+
+    nutrient[c.y][c.x] += seep;
+    waste[c.y][c.x] -= seep;
+}
+
+
+// ------------------------------------------------------------
+// ★ 3. Eタイプの特殊能力：廃棄物を直接エネルギーに変換
+// ------------------------------------------------------------
+if (c.type === TYPE_E) {
+
+    let wval = waste[c.y][c.x];
+
+    // 廃棄物の20%をエネルギーとして吸収
+    c.energy += wval * 0.2;
+
+    // 廃棄物を大きく減らす（E は強力な分解者）
+    waste[c.y][c.x] = Math.max(0, wval - 0.05);
+}
+
+
+// ------------------------------------------------------------
+// ★ 4. ミトコンドリア（hasMito）による追加エネルギー
+// ------------------------------------------------------------
+if (c.hasMito) {
+
+    // ミトコンドリアのエネルギー生成
+    c.energy += MITO_ENERGY_GAIN;
+
+    // ただし自然減衰は20%増える（代謝コスト）
+    c.energy -= (ENERGY_DECAY * 0.2);
+
+    // ミトコンドリアの蓄積値
+    c.mitoEnergy += MITO_ENERGY_GAIN;
+}
+
+
+// ------------------------------------------------------------
+// ★ 5. 自然エネルギー減衰（全タイプ共通）
+// ------------------------------------------------------------
+c.energy -= ENERGY_DECAY;
+
+
+// ------------------------------------------------------------
+// ★ 6. Cタイプは代謝が重い（追加減衰）
+// ------------------------------------------------------------
+if (c.type === 3) {
+    c.energy -= (ENERGY_DECAY * 1.5);
+}
+
+
+      // ============================================================
+// ★ Aタイプ（捕食者）の進化ロジック
+// ============================================================
+// A は「経験値（exp）」によって進化する。
+// - 色相（hue）が変化（exp → 色）
+// - トゲ（spikes）によって彩度（sat）が変化
+// - 5ターンごとに近接捕食 → exp獲得
+// - G や B の“記憶”を継承して進化する特殊ルート
+// ============================================================
+
+if (c.type === 1) {
+
+    // ------------------------------------------------------------
+    // ★ exp 初期化
+    // ------------------------------------------------------------
+    if (c.exp === undefined) c.exp = 0;
+
+    // ------------------------------------------------------------
+    // ★ 色変化（exp → hue）
+    // ------------------------------------------------------------
+    // exp が増えるほど色相が変化し、進化段階が視覚化される
+    let hue = Math.min(c.exp * 2, 360);
+
+    // トゲ本数によって彩度が変化
+    let spikes = c.shape?.spikes || 0;
+    let sat = Math.min(30 + spikes * 5, 90);
+
+    // 色を更新
+    c.color = `hsl(${hue}, ${sat}%, 50%)`;
+
+
+    // ============================================================
+    // ★ 5ターンごとに近接捕食チェック
+    // ============================================================
+    if (turnCount % 5 === 0) {
+
+        let target = null;
+
+        // --------------------------------------------------------
+        // ★ 近接1マス以内の G または B を探す
+        // --------------------------------------------------------
+        for (let j = 0; j < cells.length; j++) {
+            let other = cells[j];
+            if (other.dead || other === c) continue;
+
+            // G(0) または B(2) が対象
+            if (other.type === 0 || other.type === 2) {
+                if (Math.abs(other.x - c.x) <= 1 &&
+                    Math.abs(other.y - c.y) <= 1) {
+                    target = other;
+                    break;
+                }
+            }
+        }
+
+        // --------------------------------------------------------
+        // ★ 捕食成功
+        // --------------------------------------------------------
+        if (target) {
+
+            // エネルギー吸収（20%）
+            let steal = target.energy * 0.2;
+            target.energy -= steal;
+            c.energy += steal;
+
+            // 経験値 +10
+            c.exp += 10;
+
+
+            // ====================================================
+            // ★ G の“記憶”を継承する特殊進化ルート
+            // ====================================================
+            if (target.type === 0 && target.memoryExp) {
+
+                // 栄養が高いほど突然変異率が上がる
+                let localNutrient = nutrient[c.y][c.x];
+                let currentMutRate =
+                    BASE_MUT_RATE + (localNutrient || 0) * 0.2;
+
+                // ------------------------------------------------
+                // ★ 突然変異発生
+                // ------------------------------------------------
+                if (Math.random() < currentMutRate) {
+
+                    // 記憶経験値を継承（70〜100%）
+                    let inheritRate = 0.7 + Math.random() * 0.3;
+                    c.exp += target.memoryExp * inheritRate;
+
+                    // 形状初期化
+                    if (!c.shape)
+                        c.shape = { spikes: 0, elongation: 0.6, colorShift: 0 };
+
+                    // トゲを継承（G の memorySpikes の20% + 2）
+                    let bonusSpikes =
+                        Math.floor(target.memorySpikes * 0.2) + 2;
+                    c.shape.spikes += bonusSpikes;
+
+                    // サイズ進化
+                    c.size = Math.min(1.8, 1.0 + (c.exp * 0.01));
+
+                    // 伸長を固定
+                    c.shape.elongation = 0.6;
+
+                    // ------------------------------------------------
+                    // ★ トゲ形状のランダム進化
+                    // ------------------------------------------------
+                    if (Math.random() < 0.3)
+                        c.shape.spikeLengthFactor = 0.8 + Math.random() * 0.8;
+
+                    if (Math.random() < 0.3)
+                        c.shape.spikeWidth = 0.4 + Math.random() * 0.8;
+
+                    if (Math.random() < 0.3)
+                        c.shape.spikeJitter = Math.random() * 15;
+
+                    if (Math.random() < 0.3) {
+                        const patterns = ["even", "random", "cluster"];
+                        c.shape.spikePattern =
+                            patterns[Math.floor(Math.random() * patterns.length)];
+                    }
+
+                    if (Math.random() < 0.3)
+                        c.shape.spikeDensity = 0.8 + Math.random() * 0.4;
+
+                    // ------------------------------------------------
+                    // ★ 進化後は即ターン終了する場合がある
+                    // ------------------------------------------------
+                    if (Math.random() < 0.5) {
+                        surv.push(c);
+                        continue;
+                    }
+
+                    // log3("⚡ 覚醒：先代の記憶を層状に継承し、繊毛が濃くなった！", "#ff00ff");
+                }
+            }
+        }
+    }
+
+
+
+           // ============================================================
+// ★ Aタイプ進化段階（Lv1 / Lv2）
+// ============================================================
+// A は exp に応じて 2段階の進化を行う。
+// - Lv1：exp 10〜49
+// - Lv2：exp 50以上
+//
+// 進化すると：
+// ・サイズ増加
+// ・寿命増加（Lv1）
+// ・トゲ増加（Lv2）
+// ・環境負荷（廃棄物生成）
+// ・代謝増加（エネルギー消費増）
+// ============================================================
+
+
+// ------------------------------------------------------------
+// ★ Lv1進化：exp 10〜49
+// ------------------------------------------------------------
+if (c.exp >= 10 && c.exp < 50) {
+
+    c.isEvolved = true;
+
+    // サイズを最低1.8に引き上げる（進化の象徴）
+    c.size = Math.max(c.size, 1.8);
+
+    // 初回のみ寿命を大幅に延長
+    if (!c.evolvedLvl1) {
+        c.maxAge += 500;   // ★ 寿命+500ターン
+        c.evolvedLvl1 = true;
+        // log3("★ 追跡者の誕生：個体が進化した", c.color);
+    }
+}
+
+
+// ------------------------------------------------------------
+// ★ Lv2進化：exp 50以上
+// ------------------------------------------------------------
+else if (c.exp >= 50) {
+
+    c.isEvolved = true;
+
+    // サイズを最低2.8に引き上げる（巨大化）
+    c.size = Math.max(c.size, 2.8);
+
+    // 初回のみトゲを大量に増やす
+    if (!c.evolvedLvl2) {
+
+        if (!c.shape)
+            c.shape = { spikes: 0, elongation: 1, colorShift: 0 };
+
+        // ★ トゲ+10（攻撃力・反撃力が大幅上昇）
+        c.shape.spikes += 10;
+
+        c.evolvedLvl2 = true;
+        // log3("★ 略奪者の降臨：巨大な影が動いている", c.color);
+    }
+
+    // --------------------------------------------------------
+    // ★ Lv2進化は環境負荷を伴う
+    // --------------------------------------------------------
+
+    // 1. 廃棄物を撒く（存在するだけで環境を汚す）
+    waste[c.y][c.x] += 0.05;
+
+    // 2. 代謝が激増 → エネルギー消費3倍
+    c.energy -= (ENERGY_DECAY * 3.0);
+  }
+}
+
+       // ============================================================
+// ★ 死亡判定フェーズ
+// ============================================================
+// deathProb に死亡確率を加算していき、最後に roll で判定。
+// - エネルギー枯渇
+// - 寿命超過
+// - 病気
+// - 密度ストレス
+// - C の過密死
+// - 毒素死（E は耐性あり）
+// - エルダー死 → 栄養爆発
+// - 毒死 → G 再生
+// - 死体 → 廃棄物
+// - E 死亡エフェクト
+// ============================================================
+
+let neighbors = countNeighbors(c, cells);
+let deathProb = 0;
+
+
+// ------------------------------------------------------------
+// ★ 1. エネルギー枯渇 → 即死
+// ------------------------------------------------------------
+if (c.energy <= 0) deathProb = 1.0;
+
+
+// ------------------------------------------------------------
+// ★ 2. 寿命超過
+// ------------------------------------------------------------
+if (c.age > c.maxAge) {
+
+    // G / B / C は寿命死しやすい
+    if (c.type === 0 || c.type === 2 || c.type === 3)
+        deathProb += 0.9;
+
+    // A / E / I はやや耐える
+    else
+        deathProb += 0.5;
+}
+
+
+// ------------------------------------------------------------
+// ★ 3. 病気（ランダム死）
+// ------------------------------------------------------------
+if (Math.random() < DISEASE_RATE)
+    deathProb += 0.2;
+
+
+// ------------------------------------------------------------
+// ★ 4. C の過密死（スカベンジャーは密集に弱い）
+// ------------------------------------------------------------
+if (c.type === 3 && neighbors >= 3) deathProb += 0.10;
+if (c.type === 3 && neighbors >= 5) deathProb += 0.20;
+
+
+// ------------------------------------------------------------
+// ★ 5. 密度ストレス（全タイプ共通）
+// ------------------------------------------------------------
+if (neighbors >= DENSITY_THRESHOLD)
+    deathProb += DENSITY_DEATH_RATE;
+
+
+// ------------------------------------------------------------
+// ★ 6. 毒素死（E は耐性あり）
+// ------------------------------------------------------------
+let tox = toxin[c.y][c.x];
+let toxDeath = tox * TOXIN_DEATH_FACTOR;
+
+// E は毒素耐性 → 70% 軽減
+if (c.type === TYPE_E)
+    toxDeath *= 0.3;
+
+deathProb += toxDeath;
+
+
+// ------------------------------------------------------------
+// ★ 7. 死亡判定
+// ------------------------------------------------------------
+let roll = Math.random();
+if (roll < deathProb) {
+
+    // --------------------------------------------------------
+    // ★ A が死ぬと MEG を放出（記憶エネルギー）
+    // --------------------------------------------------------
+    if (c.type === 1 && typeof releaseMEG === 'function') {
+        releaseMEG(c.x, c.y, (c.exp || 0), (c.shape ? c.shape.spikes : 0));
+    }
+
+
+    // --------------------------------------------------------
+    // ★ エルダー死：周囲に栄養爆発 + G をスポーン
+    // --------------------------------------------------------
+    if (c.isElder) {
+        for (let dy2 = -2; dy2 <= 2; dy2++) {
+            for (let dx2 = -2; dx2 <= 2; dx2++) {
+
+                let nx2 = c.x + dx2;
+                let ny2 = c.y + dy2;
+
+                if (nx2 < 0 || nx2 >= MAP || ny2 < 0 || ny2 >= MAP) continue;
+
+                // 栄養を 1.5 に固定（超肥沃化）
+                nutrient[ny2][nx2] = 1.5;
+
+                // 10% で G をスポーン
+                if (Math.random() < 0.1) {
+                    let gFromElder = makeCell(nx2, ny2, 0);
+                    applyRandomColorToG(gFromElder);
+                    cells.push(gFromElder);
+                }
+            }
+        }
+        // log4("冥土の土産：エルダーEの骸が大地を潤す", "#55ff55");
+    }
+
+
+    // --------------------------------------------------------
+    // ★ 毒死 → G に変換（毒素が緑を生む）
+    // --------------------------------------------------------
+    if (roll < toxDeath && c.type !== 0) {
+        let g = makeCell(c.x, c.y, 0);
+        applyRandomColorToG(g);
+        cells.push(g);
+        // log5("毒死 → 緑が再生", "#55ff55");
+    }
+
+
+    // --------------------------------------------------------
+    // ★ 死体 → 廃棄物
+    // --------------------------------------------------------
+    waste[c.y][c.x] += c.isElder ? 1.0 : 0.2;
+
+    c.dead = true;
+    continue;
+}
+
+
+// ------------------------------------------------------------
+// ★ 8. E死亡エフェクト（粒子爆発）
+// ------------------------------------------------------------
+if (c.type === TYPE_E) {
+
+    let baseHue = 180 + ((c.x * 13 + c.y * 7) % 60);
+    let particleColor = `hsla(${baseHue}, 50%, 90%,`;
+
+    for (let p = 0; p < 20; p++) {
+
+        let angle = Math.random() * Math.PI * 2;
+        let speed = Math.random() * 2 + 1;
+
+        particles.push({
+            x: c.x * CELL + CELL / 2,
+            y: c.y * CELL + CELL / 2,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1.0,
+            color: particleColor
+        });
+    }
+}
+
+
+////
+// I の吸収処理（A/B/C に触れると life -2 / exp -1）
+// --- I のリーダーを決定（exp 最大の個体） ---
+let leaderI = null;
+let maxExp = -1;
+
+for (const o of cells) {
+    if (!o.dead && o.type === TYPE_I) {
+        if ((o.exp || 0) > maxExp) {
+            maxExp = o.exp || 0;
+            leaderI = o;
+        }
+    }
+}
+
+
+
+// --- I の移動（リーダー追従） ---
+if (c.type === TYPE_I) moveI(c, leaderI);
+
+// --- 先に戦闘（EvoA 捕食）を行う ---
+resolveCombat(c, cells);
+
+if (c.dead) continue;
+
+// --- I の吸収処理（A/B/C を弱体化） ---
+if (c.type === TYPE_I) {
+    for (const o of cells) {
+        if (o.dead || o === c) continue;
+
+        if (Math.abs(o.x - c.x) <= 1 && Math.abs(o.y - c.y) <= 1) {
+
+            if (o.type === 1 && o.isEvolved) continue;
+
+            if (o.type === 1 || o.type === 2 || o.type === 3) {
+                o.maxAge -= (c.absorbPower || 2);
+                o.exp = Math.max(0, (o.exp || 0) - (c.absorbExp || 1));
+                c.exp = (c.exp || 0) + (c.absorbExp || 1);
+            }
+        }
+    }
+}
+
+////
+        // 戦闘
+resolveCombat(c, cells);
+
+// ★★★ I が食べられたときの毒効果（ここが正しい位置） ★★★
+if (c.type === TYPE_I && c.dead) {
+
+    for (const o of cells) {
+        if (o.dead) continue;
+        if (o.type !== 1 && o.type !== 2 && o.type !== 3) continue;
+
+        if (Math.abs(o.x - c.x) <= 1 && Math.abs(o.y - c.y) <= 1) {
+            o.energy -= 0.3;
+            o.maxAge -= 5;
+            o.exp = Math.max(0, o.exp - 2);
+            toxin[o.y][o.x] += 0.2;
+        }
+    }
+
+    continue;   // ← 死んだ I はここで処理終了
+}
+
+if (c.dead) continue;
+
+// ★★★ I の繁殖（群れ密度 + exp 条件） ★★★
+if (c.type === TYPE_I) {
+
+    let iCount = 0;
+    for (const o of cells) {
+        if (o.dead) continue;
+        if (o.type !== TYPE_I) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        if (dx*dx + dy*dy <= 9) iCount++;
+    }
+
+    if (
+        iCount >= 3 &&
+        c.exp >= 5 &&
+        c.energy > 0.5 &&
+        (baseAliveCount + newCells.length) < CAPACITY
+    ) {
+        c.energy *= 0.5;
+
+        let child = makeCell(c.x, c.y, TYPE_I);
+        child.exp = Math.floor(c.exp * 0.3);
+        child.energy = c.energy;
+        newCells.push(child);
+    }
+}
+
+// ★★★ I コロニー分裂（群れが大きくなりすぎたら） ★★★
+if (c.type === TYPE_I) {
+
+    let group = [];
+    for (const o of cells) {
+        if (o.dead) continue;
+        if (o.type !== TYPE_I) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+        if (dx*dx + dy*dy <= 25) group.push(o);
+    }
+
+    if (group.length >= 15) {
+
+        let gx = 0, gy = 0;
+        for (const o of group) {
+            gx += o.x;
+            gy += o.y;
+        }
+        gx /= group.length;
+        gy /= group.length;
+
+        let dirX = (Math.random() < 0.5 ? -1 : 1);
+        let dirY = (Math.random() < 0.5 ? -1 : 1);
+
+        for (let i = 0; i < group.length; i++) {
+            if (i % 2 === 0) {
+                let o = group[i];
+                o.x = Math.max(0, Math.min(MAP-1, o.x + dirX));
+                o.y = Math.max(0, Math.min(MAP-1, o.y + dirY));
+            }
+        }
+    }
+}
+
+
+
+
+// ★★★ ここで生存個体として確定 ★★★
+surv.push(c);
+
+
+
+// ============================================================
+// ★ 非Eタイプの分裂処理（突然変異＋形状継承・ミトコンドリア・スパイク進化）
+// ============================================================
+// 条件：
+// ・energy > ENERGY_DIV
+// ・CAPACITY 未満
+// ・Cタイプは20ターンに1回だけ繁殖（暴走防止）
+// ============================================================
+
+if (c.energy > ENERGY_DIV &&
+    (baseAliveCount + newCells.length) < CAPACITY) {
+
+    // --------------------------------------------------------
+    // ★ Cタイプは20ターンに1回だけ繁殖（暴走防止）
+    // --------------------------------------------------------
+    if (c.type === 3 && turnCount % 20 !== 0) {
+        surv.push(c);
+        continue;
+    }
+
+    // --------------------------------------------------------
+    // ★ Eタイプはここでは分裂しない（別処理）
+    // --------------------------------------------------------
+    if (c.type !== TYPE_E) {
+
+        // ----------------------------------------------------
+        // ★ 親のエネルギーを分割（分裂コスト）
+        //    親：30% / 子：70% など、好みで調整
+        // ----------------------------------------------------
+        let childEnergy = c.energy * 0.7;
+        c.energy *= 0.3;
+
+        // ----------------------------------------------------
+        // ★ 子の位置（ランダム1マス）
+        // ----------------------------------------------------
+        let dx3 = (Math.random() * 3 | 0) - 1;
+        let dy3 = (Math.random() * 3 | 0) - 1;
+
+        let nx3 = Math.min(MAP - 1, Math.max(0, c.x + dx3));
+        let ny3 = Math.min(MAP - 1, Math.max(0, c.y + dy3));
+
+        // ----------------------------------------------------
+        // ★ 分裂イベントの代謝コスト（廃棄物生成）
+        // ----------------------------------------------------
+        waste[c.y][c.x] += 0.1;
+
+        // ----------------------------------------------------
+        // ★ 形状の継承（deep clone 推奨）
+        // ----------------------------------------------------
+        let childShape = c.shape
+            ? structuredClone(c.shape)
+            : {
+                spikes: 0,
+                elongation: 1,
+                colorShift: 0
+            };
+
+        // ----------------------------------------------------
+        // ★ ミトコンドリア継承（親 → 子）
+        // ★ 親が持っていない場合は 0.5% で突然獲得
+        // ----------------------------------------------------
+        let hasMitoChild = c.hasMito;
+        if (!hasMitoChild && Math.random() < 0.005) {
+            hasMitoChild = true;
+            // log3("★ 共生進化：ミトコンドリアを取り込んだ個体が誕生", "#00ffaf");
+        }
+
+        // ----------------------------------------------------
+        // ★ 子のタイプ（突然変異判定）
+        // ----------------------------------------------------
+        let nt2 = c.type;
+        let ns = c.size;
+
+        let localNutrient = nutrient[c.y][c.x];
+        let mutRate = BASE_MUT_RATE + localNutrient * 0.2;
+
+        if (Math.random() < mutRate) {
+
+            // A/B/C の突然変異確率
+            let r2 = Math.random();
+            let totalRate = aRate + bRate;
+            let pa = aRate, pb = bRate;
+
+            if (totalRate > 1) {
+                pa = aRate / totalRate;
+                pb = bRate / totalRate;
+            }
+
+            if (r2 < pa) nt2 = 1;           // A に変異
+            else if (r2 < pa + pb) nt2 = 2; // B に変異
+            else nt2 = 3;                   // C に変異
+
+            log3("突然変異 → " + ["緑", "A", "B", "C"][nt2] + "が誕生", "#ff55ff");
+        }
+
+        // ----------------------------------------------------
+        // ★ A に変異したときの形状進化（楕円パラメータ付与）
+        // ----------------------------------------------------
+        if (nt2 === 1) {
+            ns = Math.min(ns + 1, MAX_SIZE);
+
+            if (childShape.ellipseA === undefined) {
+                childShape.ellipseA = 1.0 + Math.random() * 0.6;
+                childShape.ellipseB = 0.5 + Math.random() * 0.4;
+                childShape.ellipseRot = Math.random() * Math.PI;
+            }
+        }
+
+        // ----------------------------------------------------
+        // ★ スパイクの突然変異（跳躍進化＋微調整）
+        // ----------------------------------------------------
+        if (Math.random() < 0.15) {
+
+            // 5% の確率で跳躍進化
+            if (Math.random() < 0.05) {
+                childShape.spikes += Math.floor(Math.random() * 5) + 2;
+                // log3("★ 跳躍進化：異形のトゲを持つ個体が誕生", "#ffff00");
+            } else {
+                let mutation = Math.floor(Math.random() * 5) - 1; // -1〜+3
+                childShape.spikes = Math.max(0, childShape.spikes + mutation);
+
+                if (mutation > 0) log3("形質の強化：トゲが鋭くなった", "#ffaa00");
+                if (mutation < 0 && childShape.spikes > 0) log3("形質の退化：不要なトゲを捨てた", "#aaaaaa");
+            }
+        }
+
+        // ----------------------------------------------------
+        // ★ 子個体の生成
+        // ----------------------------------------------------
+        let child = {
+            x: nx3,
+            y: ny3,
+            energy: childEnergy,
+            type: nt2,
+            size: ns,
+            dir: c.dir,
+            age: 0,
+            maxAge: (nt2 === 0)
+                ? GREEN_MAX_AGE + Math.floor((Math.random() * 2 - 1) * GREEN_AGE_VARIATION)
+                : BASE_MAX_AGE + Math.floor((Math.random() * 2 - 1) * AGE_VARIATION),
+            shape: childShape,
+            hasMito: hasMitoChild,
+            traits: null,
+            isElder: false,
+            dead: false,
+            clusterId: null,
+            mitoEnergy: 0,
+            energyFromPredation: 0,
+            absorbed: c.absorbed
+                ? structuredClone(c.absorbed)
+                : { 0: false, 1: false, 2: false }
+        };
+
+        // スパイクコストのペナルティ適用
+        applySpikeCostPenalty(child);
+        newCells.push(child);
+
+        // ----------------------------------------------------
+        // ★ スパイクが多い個体の出現による世界進化レベルの上昇
+        // ----------------------------------------------------
+        if (child.shape && child.shape.spikes > 10) {
+            worldEvolutionLevel += 0.002;
+
+            if (worldEvolutionLevel > 12) {
+                if (Math.random() < 0.2) {   // 20%の確率で退行
+                    worldEvolutionLevel -= 7;
+                }
+            }
+
+            if (worldEvolutionLevel < 1) {
+                worldEvolutionLevel = 1;
+            }
+        }
+    }
+}
+}
+
+cells = surv.concat(newCells);
+
+// ★ I の自然発生（汚染地帯から I をスポーンさせる）
+spawnIFromPollution();
+
+// ★ クラスタ（群れ）の再構築
+rebuildClusters(cells);
+
+// ★ クラスタ同士の戦闘処理
+resolveClusterCombat(cells);
+
+// ★ F（捕食者？特殊個体？）の自然スポーン処理
+trySpawnF();
+
+// ★ 描画処理（画面更新）
+draw();
+
+// ★ グラフ更新（統計表示など）
+updateChart();
+
+// ★ 自然スポーン（草や小型生物などの自然発生）
+naturalSpawn();
+
+// ★ 毒素の拡散・減衰などの更新処理
+updateToxin();
+
+
+// ★ 雨イベントの種類（色とタイプの定義）
+//   ※ 毎ターン生成する必要はないので、本来はループ外に置くべき
+const rainTypes = [
+    { color: "#aaffff", type: "blue"   },  // 青い雨
+    { color: "#aaffaa", type: "green"  },  // 緑の雨
+    { color: "#ffaaaa", type: "red"    },  // 赤い雨
+    { color: "#cc88ff", type: "purple" },  // 紫の雨
+    { color: "#ffee88", type: "yellow" },  // 黄色の雨
+    { color: "#444444", type: "black"  }   // 黒い雨（危険？）
+];
+
+
+// ★ 1% の確率で “雨イベント” を発生させる
+if (Math.random() < 0.01) {
+
+    // 雨の中心座標（ランダム）
+    let gx = Math.floor(Math.random() * MAP);
+    let gy = Math.floor(Math.random() * MAP);
+
+    // 雨の半径（1〜5）
+    let radius = Math.floor(Math.random() * 5) + 1;
+
+    // 雨の強さ（指数的に変化するランダム値）
+    let intensity = 0.005 * Math.pow(2, Math.random() * 6);
+
+    // 雨の種類をランダムに選択
+    let chosen = rainTypes[Math.floor(Math.random() * rainTypes.length)];
+
+    // ★ 雨イベントのデータを particleRain に設定
+    particleRain = {
+        x: gx,
+        y: gy,
+        radius: radius,
+        intensity: intensity,
+        duration: 200 + Math.random() * 200,  // 雨が続く時間
+        type: chosen.type,                    // 雨の種類（blue/green/red…）
+        color: chosen.color                   // 表示色
+    };
+
+
+// ★ 黒い雨（black rain）が発生している場合の処理
+//    黒い雨は毒素（toxin）を周囲にばらまく効果を持つ
+if (particleRain && particleRain.type === "black") {
+
+    // 雨の中心座標
+    let cx = particleRain.x;
+    let cy = particleRain.y;
+
+    // 雨の半径内を走査
+    for (let dy = -particleRain.radius; dy <= particleRain.radius; dy++) {
+        for (let dx = -particleRain.radius; dx <= particleRain.radius; dx++) {
+
+            let nx = cx + dx;
+            let ny = cy + dy;
+
+            // マップ外は無視
+            if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+            // 中心からの距離を計算
+            let dist = Math.sqrt(dx*dx + dy*dy);
+
+            // 半径内なら毒素を追加
+            if (dist < particleRain.radius) {
+                toxin[ny][nx] += particleRain.intensity * 0.05;
+            }
+        }
+    }
+}
+// ★ 黒い粒子処理ここまで（黒い雨の毒素付与が終わった）
+
+// ★ radius が大きい場合は「天変地異」扱い（ログのみ）
+if (radius > 8) {
+    // log4("★ 天変地異：巨大なエネルギーの塊が落着！", "#ffcc00");
+} else {
+
+    // ★ 小規模な粒子雨 → 光のフラッシュ演出
+    flashX = gx;
+    flashY = gy;
+    flashTimer = 20; // 20フレーム光る
+
+    // log4("★ 粒子降雨：微かなエネルギーの霧が漂う", "#aaffff");
+}
+
+// ★ 粒子雨の効果：半径内に nutrient / waste / toxin を変化させる
+for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+
+        let nx = gx + dx;
+        let ny = gy + dy;
+
+        // マップ外は無視
+        if (nx >= 0 && nx < MAP && ny >= 0 && ny < MAP) {
+
+            // 中心からの距離
+            let dist = Math.sqrt(dx * dx + dy * dy);
+
+            // 半径内のみ効果を適用
+            if (dist < radius) {
+
+                // 中心に近いほど強い効果（線形減衰）
+                let power = (1 - dist / radius) * intensity;
+
+                // 栄養を増やす
+                nutrient[ny][nx] += power;
+
+                // 廃棄物も増える（30%）
+                waste[ny][nx] += power * 0.3;
+
+                // 毒素は減少（10%）
+                toxin[ny][nx] = Math.max(0, toxin[ny][nx] - (power * 0.1));
+            }
+        }
+    }
+}
+}
+
+
+// --- 隕石イベント ---
+if (Math.random() < 0.002) {
+
+    let gx = Math.floor(Math.random() * MAP);
+    let gy = Math.floor(Math.random() * MAP);
+
+    let radius = Math.floor(Math.random() * 8) + 6;
+    let r2 = radius * radius;
+
+    for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+
+            let nx = gx + dx;
+            let ny = gy + dy;
+
+            if (nx >= 0 && nx < MAP && ny >= 0 && ny < MAP) {
+
+                let d2 = dx*dx + dy*dy;
+
+                if (d2 < r2) {
+
+                    let dist = Math.sqrt(d2);
+                    let power = (1 - dist / radius);
+
+                    nutrient[ny][nx] *= (1 - power * 0.6); // 80%→60%に弱体化
+                    waste[ny][nx] += power * 0.4;         // 0.5→0.4
+                    toxin[ny][nx] += power * 0.8;         // 1.2→0.8
+
+                    if (power > 0.85) {                   // 0.95→0.85 に緩和
+                        toxin[ny][nx] *= 0.3;
+                        waste[ny][nx] *= 0.6;
+                        nutrient[ny][nx] += 0.2;
+                    }
+                }
+            }
+        }
+    }
+
+    flashX = gx;
+    flashY = gy;
+    flashTimer = 5;
+}
+   
+function updateParticleRain() {
+
+    // 粒子雨が存在しない、または duration が不正なら終了
+    if (!particleRain || typeof particleRain.duration !== "number") {
+        particleRain = null;
+        return;
+    }
+
+    // 寿命を減らす
+    particleRain.duration--;
+
+    // 寿命切れで消滅
+    if (particleRain.duration <= 0) {
+        particleRain = null;
+    }
+}
+
+updateParticleRain();
+
+// G と I だけを抽出
+const GI = cells.filter(c => !c.dead && (c.type === TYPE_G || c.type === TYPE_I));
+
+for (const c of GI) {
+    let density = 0;
+
+    for (const o of GI) {
+        if (o === c) continue;
+
+        let dx = o.x - c.x;
+        let dy = o.y - c.y;
+
+        if (dx*dx + dy*dy <= 9) density++;
+    }
+
+    c.localDensity = density;
+}
+
+//////////////////////コロニーここから
+function updateColony() {
+    colonyAge++;
+
+    if (colonyAge > colonyLifetime) {
+        colonyState = "collapse";
+    }
+}
+
+function updateColonyCenter() {
+    let sumX = 0, sumY = 0, count = 0;
+
+    for (const o of cells) {
+        if (!o.dead && o.type === 2) {
+            sumX += o.x;
+            sumY += o.y;
+            count++;
+        }
+    }
+
+    if (count > 0) {
+        colonyCenter.x = sumX / count;
+        colonyCenter.y = sumY / count;
+    } else {
+        // コロニーが消滅した場合の安全処理
+        colonyCenter.x = null;
+        colonyCenter.y = null;
+    }
+}
+
+
+//////////////////////コロニーここまで
+
+
+
+// --- 次フレーム予約 ---
+setTimeout(function () {
+    if (running) step();
+}, 1000 / parseInt(speedSlider.value, 10));
+}
+
+
+///////////////////////////////////////////// functionstepここまで////////////////////////////////////////////
+
+
+function spawnIFromPollution() {
+
+    if (Math.random() > 0.2) return;
+
+    // ★ 宿主候補だけを事前に抽出（高速化）
+    const hosts = cells.filter(o =>
+        !o.dead && [1,2,3,TYPE_E,TYPE_F].includes(o.type)
+    );
+
+    for (let y = 0; y < MAP; y += 4) {
+        for (let x = 0; x < MAP; x += 4) {
+
+            let w = waste[y][x];
+            let t = toxin[y][x];
+            let n = nutrient[y][x];
+
+            if (w > 0.5 && t > 0.2 && n < 1.0) {
+
+                // ★ 宿主探索（高速化）
+                let nearHost = hosts.some(o => {
+                    let dx = o.x - x;
+                    let dy = o.y - y;
+                    return dx*dx + dy*dy <= 16;
+                });
+
+                if (!nearHost && Math.random() < 0.7) continue;
+
+                let spawnCount = 3 + Math.floor(Math.random() * 5);
+
+                for (let k = 0; k < spawnCount; k++) {
+                    let nx = x + Math.floor(Math.random() * 3) - 1;
+                    let ny = y + Math.floor(Math.random() * 3) - 1;
+
+                    if (nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+
+                    let c = makeCell(nx, ny, TYPE_I);
+                    if (!c) continue;
+
+                    c.energy = 20;
+                    c.age = 0;
+                    cells.push(c);
+                }
+
+                log("I が汚染地帯から " + spawnCount + " 体発生した", "#cc55ff");
+                return;
+            }
+        }
+    }
+}
+
+
+// ★ 環境ランダム化（環境変動ボタン用）
+function randomizeEnvironment() {
+    let strength = envStrengthSlider.value / 50;  // 0〜2倍
+
+    for (let y = 0; y < MAP; y++) {
+        for (let x = 0; x < MAP; x++) {
+
+            // 栄養：±50% → 強さで拡大
+            nutrient[y][x] *= (1 + (Math.random() - 0.5) * strength);
+
+            // 毒素：±5 → 強さで拡大
+            toxin[y][x] += (Math.random() - 0.5) * 5 * strength;
+            toxin[y][x] = Math.max(0, toxin[y][x]);
+
+            // 廃棄物：±3 → 強さで拡大
+            waste[y][x] += (Math.random() - 0.5) * 3 * strength;
+            waste[y][x] = Math.max(0, waste[y][x]);
+        }
+    }
+
+    log("環境が " + strength.toFixed(2) + " 倍の強さで変動した", "#ff0");
+}
+
+
+    function trySpawnF(){
+
+    const eList = cells.filter(c => !c.dead && c.type === TYPE_E);
+    if(eList.length < 2) return;
+    if(worldEvolutionLevel < 5) return;
+
+    // ★ 事前に E の位置を高速検索できるようにする（軽量化）
+    for(const a of eList){
+
+        let count = 0;
+        let wasteSum = 0;
+
+        for(const b of eList){
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+
+            if(dx*dx + dy*dy <= 9){
+                count++;
+                wasteSum += waste[b.y][b.x];
+            }
+        }
+
+        // ★ 自分自身を含むので count>=3 は「周囲に2体以上」
+        if(count >= 3 && wasteSum > 0.5){
+
+            const f = makeCell(a.x, a.y, TYPE_F);
+            if(!f) return; // 安全対策
+
+            cells.push(f);
+            log("★ 集合知生命体Fが誕生した", "#ffffff");
+            return;
+        }
+    }
+}
+
+
+function drawParticles() {
+
+    // ★ 配列を逆順に回すことで splice しても安全に処理できる
+    for (let i = particles.length - 1; i >= 0; i--) {
+
+        let p = particles[i];
+
+        // ★ 位置更新（速度ベクトルを加算）
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // ★ 寿命を減らす
+        p.life -= 0.05;
+
+        // ★ 寿命が尽きたら削除
+        if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+        }
+
+        // ★ 色の透明度を寿命に応じて変化させる
+        //    hsla → rgba に置換し、アルファ値を life に応じて調整
+        ctx.fillStyle = p.color
+            .replace('hsla', 'rgba')
+            .replace(')', `, ${p.life * 0.4})`);
+
+        // ★ パーティクルを描画（寿命に応じて小さくなる）
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 0.8 * p.life, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawParticleRain() {
+    if (!particleRain) return;
+
+    ctx.save();
+
+    // ★ #rrggbb 形式を前提に透明度を追加
+    const color = particleRain.color + "22";
+
+    const cx = particleRain.x * CELL;
+    const cy = particleRain.y * CELL;
+    const r  = particleRain.radius * CELL;
+
+    // ★ クリップ領域（円）
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.clip();
+
+    // ★ 雨粒を描画（円形領域内に限定）
+    for (let i = 0; i < 6; i++) {
+
+        // ★ 正しい円形ランダム（均一分布）
+        const ang = Math.random() * Math.PI * 2;
+        const dist = Math.random() * r;
+
+        const px = cx + Math.cos(ang) * dist;
+        const py = cy + Math.sin(ang) * dist;
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+function drawUI() {
+
+    // ★ クラスタ（群れ）のアウトライン描画
+    drawClusters(ctx);
+
+    // ★ 各タイプの個体数を取得
+    const counts = countTypes();
+
+    ctx.save();
+    ctx.shadowBlur = 0;
+    ctx.font = "bold 14px monospace";
+
+    // ★ 各タイプの個体数を左上に表示
+    ctx.fillStyle = "#00ff00"; ctx.fillText("G (Producer): " + counts.g, 10, 20);
+    ctx.fillStyle = "#4444ff"; ctx.fillText("A (Predator): " + counts.a, 10, 40);
+    ctx.fillStyle = "#ff4444"; ctx.fillText("B (Scavenger): " + counts.b, 10, 60);
+    ctx.fillStyle = "#ffa500"; ctx.fillText("C (Absorber): " + counts.c, 10, 80);
+
+    ctx.fillStyle = "#cc88ff"; ctx.fillText("E (Elder/Worm): " + counts.e, 10, 110);
+    ctx.fillStyle = "#ffffff"; ctx.fillText("EvA (Evolved A): " + (counts.evolvedA || 0), 10, 130);
+
+    // ★ I の追加
+    ctx.fillStyle = "#00ffff";
+    ctx.fillText("I (Parasite): " + counts.i, 10, 150);
+
+    // ★ F/H の表示
+    ctx.fillStyle = "#00ffff";
+    ctx.fillText("F/H (Special): " + (counts.f + counts.h), 10, 170);
+
+    // ★ ターン数と進化レベル
+    ctx.fillStyle = "#aaaaaa"; ctx.fillText("Turn: " + turnCount, 10, 190);
+    ctx.fillStyle = "#aaaaaa"; ctx.fillText("World Evo: " + worldEvolutionLevel.toFixed(2), 10, 210);
+
+    ctx.restore();
+}
+
+
+/////////////////////////////draw()ここから////////////////////////////////////////////////////
+
+function draw() {
+    clearScreen();
+    drawFlash();
+
+    for (const c of cells) {
+        if (c.dead) continue;
+
+
+
+        const { cx, cy } = getSmoothPosition(c);
+
+        switch (c.type) {
+            case TYPE_A: drawA(c, cx, cy); break;
+            case TYPE_B: drawB(c, cx, cy); break;
+            case TYPE_C: drawC(c, cx, cy); break;
+            case TYPE_E: drawE(c, cx, cy); break;
+            case TYPE_F: drawF(c, cx, cy); break;
+            case TYPE_I: drawI(c, cx, cy); break;
+            case TYPE_G: drawG(c, cx, cy); break;
+        }
+
+        drawSpikesForCell(c, cx, cy);
+    }
+
+    drawParticles();
+    drawParticleRain();
+    drawUI();
+}
+
+
+function clearScreen() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+}
+
+function drawFlash() {
+    if (flashTimer <= 0) return;
+
+    ctx.save();
+    ctx.globalAlpha = 0.05;
+    ctx.fillStyle = "rgba(255,255,200,0.2)";
+    ctx.beginPath();
+    ctx.arc(flashX * CELL, flashY * CELL, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    flashTimer--;
+}
+
+function getSmoothPosition(c) {
+    let SMOOTH = 0.1;
+
+    switch (c.type) {
+        case TYPE_G: SMOOTH = 0.15; break;
+        case TYPE_A: SMOOTH = 0.45; break;
+        case TYPE_B: SMOOTH = 0.30; break;
+        case TYPE_C: SMOOTH = 0.25; break;
+        case TYPE_E: SMOOTH = 0.12; break;
+        case TYPE_F: SMOOTH = 0.20; break;
+        case TYPE_I: SMOOTH = 0.22; break;
+    }
+
+    if (c.prevX === undefined) c.prevX = c.x;
+    if (c.prevY === undefined) c.prevY = c.y;
+
+    c.prevX = c.prevX * (1 - SMOOTH) + c.x * SMOOTH;
+    c.prevY = c.prevY * (1 - SMOOTH) + c.y * SMOOTH;
+
+    return {
+        cx: c.prevX * CELL + CELL / 2,
+        cy: c.prevY * CELL + CELL / 2
+    };
+}
+
+function getNeighborsA(c, radius = 3) {
+    const list = [];
+    const r2 = radius * radius;
+
+    for (const other of cells) {
+        if (other === c) continue;
+        if (other.type !== TYPE_A) continue;
+
+        const dx = other.x - c.x;
+        const dy = other.y - c.y;
+
+        if (dx * dx + dy * dy <= r2) {
+            list.push(other);
+        }
+    }
+    return list;
+}
+
+
+
+
+function drawA(c, cx, cy) {
+if (hideA) return;  // ← A を描かない
+ctx.save();
+
+    let sizePix = c.size * (CELL / 2);
+
+  // フェーズ更新
+c.phase ??= Math.random() * Math.PI * 2;
+c.phase += 0.08;
+
+c.phaseBoost ??= 0;
+
+// neighbors
+const neighbors = getNeighborsA(c, 4);
+
+// フェーズ同期
+for (let other of neighbors) {
+    c.phase = (c.phase * 0.9 + other.phase * 0.1);
+}
+
+////レベル表示
+//ctx.fillStyle = "white";
+//ctx.font = "10px sans-serif";
+//ctx.fillText("Lv" + c.evoLevel, cx + 5, cy - 5);
+/////レベル表示
+
+
+
+// ★ 発生直後だけ白くする
+if (c.justBorn) {
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(sizePix * 0.35, 3), 0, Math.PI * 2);
+    ctx.fill();
+
+    // 1フレームだけ白 → 次から通常色
+    c.justBorn = 10;  // 10フレーム白
+
+
+    ctx.restore();
+    return;
+}
+
+
+
+    // 光の強さ（0〜1）
+    const glow = (Math.sin(c.phase) + 1) / 2;
+
+   // ★ 色相（位置ベース + 色相シフト）
+let hueBase = (c.x * 13 + c.y * 7) % 360;
+c.hueShift ??= 0;
+let hue = (hueBase + c.hueShift) % 360;
+
+
+    const rx = Math.max(sizePix * c.shape.ellipseA, 6);
+    const ry = Math.max(sizePix * c.shape.ellipseB, 4);
+
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, c.shape.ellipseRot, 0, Math.PI * 2);
+    ctx.fill();
+
+// ★ A が刺激で光る
+if (c.type === TYPE_A) {
+
+    // 近くに他のセルが来たら光る
+   // ★ 刺激反応
+for (let other of neighbors) {
+    if (other !== c) {
+        const dx = c.x - other.x;
+        const dy = c.y - other.y;
+
+        if (dx*dx + dy*dy <= 4) {
+            c.phaseBoost += 0.6;   // ← 刺激光
+        }
+    }
+}
+
+  // ★ 刺激光の減衰
+c.phaseBoost *= 0.92;
+}
+   // ★ A が光ったら周囲の A にも光を伝播させる（連鎖発光）
+if (c.phaseBoost > 0.3) {  // ある程度光っているときだけ伝播
+    for (let other of neighbors) {
+        if (other !== c && other.type === TYPE_A) {
+            const dx = c.x - other.x;
+            const dy = c.y - other.y;
+
+            if (dx*dx + dy*dy <= 9) { // 距離3以内に伝播
+                other.phaseBoost += c.phaseBoost * 0.25;
+                // 25% だけ光を分ける
+            }
+        }
+    }
+}
+
+// ★ A が光ったら周囲の A にも光を伝播させる（連鎖発光）
+if (c.phaseBoost > 0.3) {
+    for (let other of neighbors) {
+        if (other !== c && other.type === TYPE_A) {
+
+            const dx = c.x - other.x;
+            const dy = c.y - other.y;
+
+            // ★ 伝播距離を広げる（距離6以内）
+            if (dx*dx + dy*dy <= 36) {
+
+                // ★ 光の強さを伝播（25%）
+                other.phaseBoost += c.phaseBoost * 0.25;
+
+                // ★ 色相を少し変える（光を受けた A は hue が変化）
+                other.hueShift ??= 0;
+                other.hueShift += 3;   // 3°ずつ色相が変わる
+                other.hueShift = Math.min(other.hueShift, 40); // 最大40°まで
+            }
+        }
+    }
+}
+
+
+
+// ★ トゲ（柔らかく光る深海風）
+const spikes = c.shape?.spikes || 0;
+if (spikes > 0) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(c.shape.ellipseRot);
+
+    // 時間（揺れ用）
+    const time = Date.now() * 0.002;
+
+    for (let i = 0; i < spikes; i++) {
+
+
+// ★ glow = 自然光 + 刺激光
+// ★ 自然な脈動（暗め）
+const baseGlow = 0.1 + (Math.sin(c.phase) * 0.1);
+// → 0.0〜0.2 の範囲に収まる
+
+// ★ 刺激光（phaseBoost）
+const boostGlow = Math.min(c.phaseBoost, 1.0);
+
+// ★ 合成（刺激があるときだけ明るくなる）
+const glow = Math.min(baseGlow + boostGlow, 1.0);
+
+        // ★ 元の角度
+        const baseAngle = (Math.PI * 2 / spikes) * i;
+
+        // ★ 揺れ（触手のゆらぎ）
+        const wave = Math.sin(time + i * 0.8) * 0.25;  // 揺れ幅 0.25rad ≒ 14°
+        const angle = baseAngle + wave;
+
+        // ★ 揺れた方向にトゲを描く
+        const sx = Math.cos(angle) * rx;
+        const sy = Math.sin(angle) * ry;
+        const ex = Math.cos(angle) * (rx + sizePix * 0.7);
+        const ey = Math.sin(angle) * (ry + sizePix * 0.7);
+
+        // ★ 光の糸（極細）
+        ctx.lineWidth = 0.25;
+        ctx.strokeStyle = `hsla(${hue}, 95%, ${40 + glow * 40}%, 0.25)`;
+
+        ctx.shadowColor = `hsla(${hue}, 100%, ${75 + glow * 20}%, 0.45)`;
+        ctx.shadowBlur = 35 + glow * 20;
+
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+
+        // ★ ランダム発光点（途中＋先端）
+        let dotCount = 3 + Math.floor(Math.random() * 3); // 3〜5個
+        for (let d = 0; d < dotCount; d++) {
+
+            // 0〜1 の間でランダム位置（1 = 先端）
+            let t = Math.random();
+
+            // 線上の位置を補間
+            let px = sx + (ex - sx) * t;
+            let py = sy + (ey - sy) * t;
+
+            // 先端に近いほど明るい
+            let intensity = t;
+            let dotLight = 50 + intensity * 30 + glow * 20;
+
+            ctx.shadowBlur = 30 + intensity * 20 + glow * 15;
+            ctx.fillStyle = `hsla(${hue}, 100%, ${dotLight}%, ${0.4 + intensity * 0.4})`;
+
+            ctx.beginPath();
+            ctx.arc(px, py, 0.4 + intensity * 0.4 + glow * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ★ 先端の強い発光点（色相シフト対応）
+ctx.shadowBlur = 45 + glow * 25;
+
+// hueShift を反映した hue を使う
+ctx.fillStyle = `hsla(${hue}, 100%, ${70 + glow * 20}%, ${0.7 + glow * 0.2})`;
+
+ctx.beginPath();
+ctx.arc(ex, ey, 0.6 + glow * 0.4, 0, Math.PI * 2);
+ctx.fill();
+
+    }
+
+// ★ 色相シフトの減衰（ゆっくり元の色に戻る）
+c.hueShift *= 0.97;
+
+    ctx.restore();
+}
+
+//////////EvAだけ白く////////
+if (c.isEvolved) {
+    ctx.fillStyle = "white";
+    ctx.shadowColor = "rgba(255,255,255,0.7)";
+    ctx.shadowBlur = 25;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(sizePix * 0.45, 4), 0, Math.PI * 2);
+    ctx.fill();
+}
+///////EvAだけ白く//////////
+
+    // 進化コア
+    if (c.isEvolved) {
+        ctx.fillStyle = c.color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(sizePix * 0.35, 3), 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+
+    ctx.restore();
+}
+
+
+
+
+    // ------------------------------------------------------------
+    // ★ Gの描写
+    // ------------------------------------------------------------
+function drawG(c, cx, cy) {
+ if (hideG) return;  // ← G を描かない
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    let density = c.localDensity || 0;
+
+    // ★ 深海プランクトンの適正サイズ
+    let size = 0.7 + density * 0.3;
+
+    // ★ G の色は cell.color を使う（ランダム色が生きる）
+    let color = c.color || "hsl(185, 80%, 50%)";
+
+    // 脈動
+    let pulse = (Math.sin(Date.now() * 0.003) + 1) / 2;
+    let light = 45 + pulse * 15;
+
+    // ★ 色の明度だけ変える（色相は cell.color のまま）
+    ctx.fillStyle = color.replace("50%", `${light}%`);
+
+    // ★ 光のにじみ
+    ctx.shadowColor = color.replace("50%", "70%");
+    ctx.shadowBlur = 20 + density * 4;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+
+    // ------------------------------------------------------------
+    // ★ Eの描写
+    // ------------------------------------------------------------
+function drawE(c, cx, cy) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    let time = Date.now() / 600;
+    let pulse = Math.sin(time) * 0.2 + 1.0;
+
+    let baseHue = 180 + ((c.x * 13 + c.y * 7) % 60);
+    let dotColor = `hsla(${baseHue}, 40%, 90%,`;
+
+    let numDots = c.isElder ? 16 : 10;
+    let baseRadius = c.size * 2.5;
+
+    for (let j = 0; j < numDots; j++) {
+        let angle = (j / numDots) * Math.PI * 2 + (time * 0.5);
+        let dist = baseRadius * pulse;
+        let dx = Math.cos(angle) * dist;
+        let dy = Math.sin(angle) * dist;
+
+        ctx.fillStyle = `${dotColor} ${0.8 - (j % 3) * 0.2})`;
+        ctx.beginPath();
+        ctx.arc(dx, dy, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (c.isElder) {
+            ctx.strokeStyle = `hsla(45, 100%, 70%, 0.15)`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(dx, dy); ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = `rgba(${dotColor}, 0.3)`;
+    ctx.beginPath();
+    ctx.arc(0, 0, c.size * 0.8 * (2 - pulse), 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+    // ------------------------------------------------------------
+    // ★ Iの描写
+    // ------------------------------------------------------------
+function drawI(c, cx, cy) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    let density = c.localDensity || 0;
+
+    let size = 0.3 + density * 0.2;
+    let hue = 290;
+    let light = 70 + density * 5;
+
+    ctx.shadowBlur = 25 + density * 4;
+    ctx.shadowColor = `hsla(${hue}, 100%, ${light}%, 0.9)`;
+
+    ctx.fillStyle = `hsla(${hue}, 100%, ${light}%, 0.95)`;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = `hsla(${hue}, 100%, 5%, 0.8)`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, size + 3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+    // ------------------------------------------------------------
+    // ★ Fの描写
+    // ------------------------------------------------------------
+function drawF(c, cx, cy) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    let t = Date.now() * 0.004;
+    let pulse = (Math.sin(t) + 1) * 0.5;
+
+    let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, c.size * 4);
+    grad.addColorStop(0, `rgba(180,255,255,${0.35 + pulse * 0.25})`);
+    grad.addColorStop(1, "rgba(180,255,255,0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, c.size * 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = `rgba(200,255,255,${0.7 + pulse * 0.3})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, c.size * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+    // ------------------------------------------------------------
+    // ★ Cの描写
+    // ------------------------------------------------------------
+function drawC(c, cx, cy) {
+    if (hideC) return;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // ★ 個体ごとにランダム方向（0〜360°）
+    if (c.angle === undefined) {
+        c.angle = Math.random() * Math.PI * 2;
+    }
+    ctx.rotate(c.angle);
+
+    // パルスでわずかに明るさ変化
+    let t = Date.now() * 0.002;
+    let pulse = (Math.sin(t) + 1) / 2;
+
+    // 藻の色（透明な緑）
+    let hue = 130; // 緑
+    let light = 45 + pulse * 5;
+
+    const r = c.size * (CELL / 10); // 細長いので小さめ
+    const len = r * 3;              // 長さ
+
+    // ★ 本体（細長い藻の体）
+    ctx.fillStyle = `hsla(${hue}, 60%, ${light}%, 0.35)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r, len, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ★ 内部の細胞（透けて見える核）
+    ctx.fillStyle = `hsla(${hue}, 70%, ${light + 10}%, 0.55)`;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ★ ランダム分岐（藻の枝）
+    ctx.strokeStyle = `hsla(${hue}, 80%, ${light + 20}%, 0.6)`;
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -len);
+    ctx.lineTo((Math.random() - 0.5) * r * 2, -len - r * 1.2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, len);
+    ctx.lineTo((Math.random() - 0.5) * r * 2, len + r * 1.2);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+
+    // ------------------------------------------------------------
+    // ★ Bの描写
+    // ------------------------------------------------------------
+function drawB(c, cx, cy) {
+    if (hideB) return;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // ★ 基本サイズ
+    let r = c.size * (CELL / 5);
+
+    // ★ 女王は2倍サイズ
+    if (c.isQueen) r *= 2;
+
+    // ============================================================
+    // ★ 女王の描画（真っ白 + 光る）
+    // ============================================================
+    if (c.isQueen) {
+
+        // 外側の光（グロー）
+        let gradient = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, r * 1.8);
+        gradient.addColorStop(0, "rgba(255,255,255,0.9)");
+        gradient.addColorStop(1, "rgba(255,255,255,0.0)");
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 本体（真っ白）
+        ctx.fillStyle = "rgba(255,255,255,1.0)";
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+        return;
+    }
+
+    // ============================================================
+    // ★ 兵隊B（赤み）
+    // ============================================================
+    if (c.isWarrior) {
+        ctx.fillStyle = "rgba(255,120,120,0.8)";
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+    }
+
+    // ============================================================
+    // ★ コロニー化したB（濃い白）
+    // ============================================================
+    if (c.colonyMode) {
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+    } else {
+        // ノーマルB（薄い白）
+        ctx.fillStyle = "rgba(255,255,255,0.55)";
+    }
+
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+   // ------------------------------------------------------------
+// ★ Spikes（トゲ）の描写
+// ------------------------------------------------------------
+// 各セルは「形状データ（shape）」の中に spikes 情報を持っており、
+// その数・長さ・太さ・揺れ・密度・パターンなどを使って
+// “深海生物の触手” のような装飾を描画する。
+//
+// ・spikes … トゲの本数
+// ・spikeLengthFactor … トゲの長さ倍率（種族ごとに違う）
+// ・spikeWidth … トゲの太さ
+// ・spikeJitter … 揺れのランダム性（触手のゆらぎ）
+// ・spikeDensity … トゲの密度（本数の倍率）
+// ・spikePattern … 並び方（均等 / ランダム など）
+//
+// 実際の描画は drawSpikes() に委譲し、ここでは
+// “セル固有のパラメータを整えて渡す” 役割を担う。
+// ------------------------------------------------------------
+function drawSpikesForCell(c, cx, cy) {
+    if (!c.shape || c.shape.spikes <= 0) return;
+
+    let spikeLength = c.size * 1.5;
+
+    if (c.shape.spikeLengthFactor)
+        spikeLength *= c.shape.spikeLengthFactor;
+
+    let spikeWidth  = c.shape.spikeWidth  || 0.6;
+    let spikeJitter = c.shape.spikeJitter || 0;
+    let spikeDensity = c.shape.spikeDensity || 1.0;
+    let spikePattern = c.shape.spikePattern || "even";
+
+    ctx.lineWidth = spikeWidth;
+
+    drawSpikes(ctx, cx, cy, c.shape.spikes * spikeDensity, spikeLength, {
+        jitter: spikeJitter,
+        pattern: spikePattern
+    });
+}
+
+
+/////////////////////////////draw()ここまで////////////////////////////////////////////////////
+/////////////////////////////updateChartここから////////////////////////////////////////////////////
+   function updateChart(){
+     // 統計データを取得（countTypes関数が正しく定義されている前提）
+     var counts = countTypes();
+
+     // chartDataオブジェクトの各配列に現在の数値を保存
+     chartData.G.push(counts.g);
+     chartData.A.push(counts.a);
+     chartData.B.push(counts.b);
+     chartData.C.push(counts.c);
+     chartData.E.push(counts.e);
+     chartData.I.push(counts.i);
+   
+     // 進化個体Aのデータを記録（配列がなければ作成）
+     if(!chartData.EvA) chartData.EvA = [];
+     chartData.EvA.push(counts.evolvedA || 0);
+
+     chartData.turn.push(turnCount);
+
+     // データが1000件を超えたら古いデータをリセットしてメモリを節約
+    if(chartData.turn.length > 1000){
+    chartData.G.shift();
+    chartData.A.shift();
+    chartData.B.shift();
+    chartData.C.shift();
+    chartData.E.shift();
+    chartData.I.shift();     // ← これが抜けていた！
+    chartData.EvA.shift();
+    chartData.turn.shift();
+}
+
+
+
+     // グラフの再描画（drawChart関数が必要）
+     if (typeof drawChart === "function") {
+         drawChart();
+     }
+}
+
+/////////////////////////////updateChartここまで////////////////////////////////////////////////////
+
+///////////////////////////// functiondrawChartここから////////////////////////////////////////////////////
+
+
+   function drawChart() {
+     var ccvs = document.getElementById("chartCanvas");
+     var cctx = ccvs.getContext("2d");
+     cctx.clearRect(0, 0, ccvs.width, ccvs.height);
+
+     if (chartData.turn.length < 2) return;
+
+     // --- 最大値の算出（EvAも対象に含める） ---
+
+var maxVal = 1;
+// 計算対象に EvA を含める
+var arraysToCalculate = [
+    chartData.G, chartData.A, chartData.B,
+    chartData.C, chartData.E, chartData.I
+];
+if (chartData.EvA) arraysToCalculate.push(chartData.EvA);
+
+
+for (var i = 0; i < arraysToCalculate.length; i++) {
+     var arr = arraysToCalculate[i];
+     for (var j = 0; j < arr.length; j++) {
+         if (arr[j] > maxVal) maxVal = arr[j];
+     }
+}
+
+     /**
+      * 線を描画する内部関数
+      * @param {Array} data - プロットするデータ配列
+      * @param {String} color - 線の色
+      * @param {Object} options - { width: 太さ, dashed: 点線か }
+      */
+     function line(data, color, options = {}) {
+         if (!data || data.length < 2) return;
+
+         cctx.save();
+         cctx.strokeStyle = color;
+         cctx.lineWidth = options.width || 1;
+         if (options.dashed) cctx.setLineDash([5, 5]); // 点線設定
+
+         cctx.beginPath();
+         for (var i = 0; i < data.length; i++) {
+             var x = (i / (data.length - 1)) * ccvs.width;
+             var y = ccvs.height - (data[i] / maxVal) * ccvs.height;
+             if (i === 0) cctx.moveTo(x, y);
+             else cctx.lineTo(x, y);
+         }
+         cctx.stroke();
+         cctx.restore(); // 線の状態（点線など）をリセット
+     }
+
+     // --- 各種プロット ---
+     line(chartData.G, "#00ff00");
+     line(chartData.A, "#0000ff");
+     line(chartData.B, "#ff0000");
+     line(chartData.C, "#ffa500");
+     line(chartData.E, "#cc88ff", { width: 3 });
+     line(chartData.I, "#00ffff");
+
+     // --- 追加：進化個体Aを白い細線（または点線）で重ねる ---
+     if (chartData.EvA) {
+         // Aタイプ（青）の上に、進化個体数を白の点線で描画
+         line(chartData.EvA, "#ffffff", { width: 1, dashed: true });
+     }
+}
+
+///////////////////////////// functiondrawChartここまで////////////////////////////////////////////////////
+
+
+/////////////////////////////  functionnaturalSpawnここから////////////////////////////////////////////////////
+      function naturalSpawn(){
+          for(let i=0; i<20; i++){
+              let x = Math.floor(Math.random() * MAP);
+              let y = Math.floor(Math.random() * MAP);
+              nutrient[y][x] = Math.min(1, nutrient[y][x] + 0.01);
+              if(nutrient[y][x] > 0.25 && Math.random() < 0.001){
+                  let g = greenSpawnRate;
+                  let a = aRate;
+                  let b = bRate;
+                  let sum = g + a + b;
+                  if(sum > 1){
+                      g /= sum;
+                      a /= sum;
+                      b /= sum;
+                  }
+                  let r = Math.random();
+                  let type = 0;
+                  if(r < g) type = 0;
+                  else if(r < g + a) type = 1;
+                  else if(r < g + a + b) type = 2;
+                  else type = 3;
+                 let newCell = makeCell(x, y, type);
+applyRandomColorToG(newCell);
+cells.push(newCell);
+
+              }
+          }
+      }
+/////////////////////////////  functionnaturalSpawnここまで////////////////////////////////////////////////////
+
+      function updateToxin(){
+          let total = 0;
+          for(let i=0; i<cells.length; i++){
+              if(!cells[i].dead) total++;
+          }
+///////////////////////////// 毒の設定////////////////////////////////////////////////////
+
+          if(Math.random() < 0.0005){//発生確率
+              let cx = Math.floor(Math.random()*MAP);
+              let cy = Math.floor(Math.random()*MAP);
+              let radius = 3 + Math.random()*10;
+              let strength = 0.01 + Math.random()*0.05;
+              for(let y=0; y<MAP; y++){
+                  for(let x=0; x<MAP; x++){
+                      let dx = x - cx; let dy = y - cy;
+                      let dist = Math.sqrt(dx*dx + dy*dy);
+                      if(dist < radius){
+                          toxin[y][x] = Math.min(1, toxin[y][x] + strength * (1-dist/radius));
+                      }
+                  }
+              }
+          }
+
+// --- 毒素総量が一定以上なら、確率で部分浄化 ---
+let toxinSum = 0;
+for (let y = 0; y < MAP; y++) {
+    for (let x = 0; x < MAP; x++) {
+        toxinSum += toxin[y][x];
+    }
+}
+
+if (toxinSum > 18000 && Math.random() < 0.3) {
+
+    log("★ 毒素が限界値を超えたため、ランダムに部分浄化されました", "#55aaff");
+
+    for (let y = 0; y < MAP; y++) {
+        for (let x = 0; x < MAP; x++) {
+
+            // 0〜1 のランダム係数を生成（0%〜100% 浄化）
+           let rate = Math.random() * 0.5;
+
+
+            // 毒素をランダム割合で減らす
+            toxin[y][x] *= rate;
+        }
+    }
+
+    return;
+}
+
+// 毒素の自然減衰
+for (let y = 0; y < MAP; y++) {
+    for (let x = 0; x < MAP; x++) {
+        toxin[y][x] = Math.max(0, toxin[y][x] - 0.0005);
+    }
+}
+
+
+          if(total > 200){
+              for(let y=0; y<MAP; y++){
+                  for(let x=0; x<MAP; x++){
+                      toxin[y][x] = Math.min(1, toxin[y][x] + 0.001);
+                  }
+              }
+          }
+
+          if(total < 80 && total > 0){
+              for(let y=0; y<MAP; y++){
+                  for(let x=0; x<MAP; x++){
+                      toxin[y][x] = Math.max(0, toxin[y][x] - 0.002);
+                  }
+              }
+          }
+
+          if(total === 0 && turnCount > 100){
+              let cx = Math.floor(Math.random()*MAP);
+              let cy = Math.floor(Math.random()*MAP);
+              let radius = 20 + Math.random()*60;
+              let strength = 0.1 + Math.random()*0.4;
+              for(let y=0; y<MAP; y++){
+                  for(let x=0; x<MAP; x++){
+                      let dx = x - cx; let dy = y - cy;
+                      let dist = Math.sqrt(dx*dx + dy*dy);
+                      if(dist < radius){
+                          toxin[y][x] = strength * (1-dist/radius);
+                      } else {
+                          toxin[y][x] = 0;
+                      }
+                      nutrient[y][x] = Math.random() * NUTRIENT_SCALE;
+                      waste[y][x] = 0;
+                  }
+              }
+              for(let i=0; i<50; i++){
+                  let x = Math.floor(Math.random()*MAP);
+                  let y = Math.floor(Math.random()*MAP);
+                  let g = makeCell(x, y, 0);
+                  applyRandomColorToG(g);
+                  cells.push(g);
+
+              }
+              log("★ 世界がリセットされ、新たな毒気候が発生。生命が再び芽吹く。", "#00ffff");
+          }
+      }
+
+      function restartWorld(){
+          running = false;
+          turnCount = 0;
+          eCount = 0;
+          worldEvolutionLevel = 1.0;
+          clusters = [];
+          nextClusterId = 1;
+          // restartWorld 関数内
+          chartData = { G:[], A:[], B:[], C:[], E:[],I: [], EvA:[], turn:[] };
+          for(let y = 0; y < MAP; y++){
+              for(let x = 0; x < MAP; x++){
+                  nutrient[y][x] = Math.random() * NUTRIENT_SCALE;
+                  toxin[y][x] = Math.random() * TOXIN_MAX;
+                  waste[y][x] = 0;
+              }
+          }
+
+          initCells();
+          log("世界を再起動（リスタート）します...", "#00ffff");
+          running = true;
+          draw();
+          step();
+      }
+
+      var startBtn = document.getElementById("startBtn");
+      var stopBtn = document.getElementById("stopBtn");
+      var restartBtn = document.getElementById("restartBtn");
+      var godBtn = document.getElementById("godBtn");
+
+      startBtn.onclick = function(){
+          if (running) return;
+          if(cells.length === 0){
+              initCells();
+          }
+          running = true;
+          step();
+      };
+
+      stopBtn.onclick = function(){
+          running = false;
+          log("シミュレーション停止");
+      };
+
+      restartBtn.onclick = function(){
+          restartWorld();
+      };
+
+var envChaosBtn = document.getElementById("envChaosBtn");
+envChaosBtn.onclick = randomizeEnvironment;
+
+      godBtn.onclick = function(){
+          restartWorld();
+          //log3("刻（とき）が歪みました。始祖が降臨します...", "#ffea00");
+          for(let i = 0; i < 3; i++){
+              var x = Math.floor(Math.random() * MAP);
+              var y = Math.floor(Math.random() * MAP);
+              var elder = makeCell(x, y, TYPE_E);
+              elder.maxAge *= 12;
+              elder.isElder = true;
+
+
+if (!elder.shape) elder.shape = { spikes: 0, elongation: 1, colorShift: 0 };
+
+
+              elder.shape.spikes = 15;
+              applySpikeCostPenalty(elder);
+              elder.energy = 2.0;
+              cells.push(elder);
+          }
+          var mid = Math.floor(MAP / 2);
+          for(let dy = -3; dy <= 3; dy++){
+              for(let dx = -3; dx <= 3; dx++){
+                  let nx = mid + dx;
+                  let ny = mid + dy;
+                  if(nx < 0 || nx >= MAP || ny < 0 || ny >= MAP) continue;
+                  nutrient[ny][nx] = 2.0;
+                  waste[ny][nx] = 0.5;
+              }
+          }
+          draw();
+      };
+
+
+
+
+
+
+      cvs.ondblclick = function(){
+          var isMode = document.body.classList.toggle("screensaver-mode");
+          if(isMode){
+              cvs.width = window.innerWidth * 0.85;
+              cvs.height = window.innerHeight * 0.85;
+              CELL = Math.min(cvs.width, cvs.height) / MAP;
+              log("全画面解像度に最適化しました", "#ffffff");
+          } else {
+              cvs.width = 928;
+              cvs.height = 800;
+              CELL = 800 / MAP;
+          }
+
+
+          draw();
+      };
+
+      draw();
+
+
+});
+
+// 最終変更日時を表示
+const now = new Date();
+const formatted =
+    now.getFullYear() + "/" +
+    String(now.getMonth() + 1).padStart(2, "0") + "/" +
+    String(now.getDate()).padStart(2, "0") + " " +
+    String(now.getHours()).padStart(2, "0") + ":" +
+    String(now.getMinutes()).padStart(2, "0");
+
+document.getElementById("lastUpdate").textContent = "Last Update: " + formatted;
+
+
+</script>
+
+<div style="color:#888; font-size:12px; text-align:center; margin-top:10px;">
+      © 2026 M.Morimoto — ReGenesis Engine《MEG》ver2.0 <br>parioetlaforet@gmail.com
+</div>
+
+
+
+<div id="simulation-integrated-archive" style="max-width: 850px; margin:
+60px auto; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+sans-serif; background-color: #0d1117; color: #c9d1d9; border: 1px solid
+#30363d; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 40px
+rgba(0,0,0,0.6);">
+
+    <section style="padding: 40px; border-bottom: 1px solid #30363d;
+background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);">
+        <header style="margin-bottom: 30px; text-align: center;">
+            <h2 style="font-size: 2rem; color: #58a6ff; margin: 0;">The
+Living Micro-Universe</h2>
+            <p style="font-style: italic; color: #8b949e; margin-top:
+8px;">- 4 Types, Infinite Traits, Endless Evolution -</p>
+        </header>
+
+        <div style="line-height: 1.8; font-size: 1rem;">
+            <p>このシミュレーションには、<strong>「5タイプ」</strong>の生命体しか存在しません。<br>
+                <span style="background: #000000; color: #00ff00;
+padding: 2px 8px; border-radius: 4px; border: 1px solid
+#1f6feb;">G（群れ）</span>
+                <span style="background: #000000; color: #4444ff;
+padding: 2px 8px; border-radius: 4px; border: 1px solid
+#f85149;">A（捕食者）</span>
+                <span style="background: #000000; color: #ff4444;
+padding: 2px 8px; border-radius: 4px; border: 1px solid
+#238636;">B（掃除屋）</span>
+                <span style="background: #000000; color: #ffa500;
+padding: 2px 8px; border-radius: 4px; border: 1px solid
+#8957e5;">C（分解者）</span>
+ <span style="background:#000; color:#b37bff;
+padding:2px 8px; border-radius:4px; border:1px solid #8f5aff;">
+I（分解者）
+</span>
+
+            </p>
+            <p>
+
+たった4種類の役割でも、個体が持つ<strong>“形質（traits）”</strong>――見た目や能力の内部パラメータ――が、環境や経験によって常に変化し続けます。
+            </p>
+            <blockquote style="margin: 25px 0; padding: 15px 20px;
+background: #161b22; border-left: 4px solid #58a6ff; color: #58a6ff;
+font-weight: bold; text-align: center; letter-spacing: 1px;">
+                環境 → 行動 → 経験 → 形質 → 生存 → 次の変化
+            </blockquote>
+            <p>
+
+タイプは4つ。でも、形質は無限。あなたが見ているのは、ただのシミュレーションではなく、小さな宇宙の中で進化し続ける、<strong>生態系そのもの</strong>です。
+            </p>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px
+solid #30363d; color: #8b949e; font-size: 0.85rem; font-style: italic;">
+            What you’re watching is not just a simulation—it’s a living,
+evolving micro-universe.
+        </div>
+    </section>
+
+    <section style="padding: 30px 40px; background-color: #050505;">
+        <header style="margin-bottom: 20px; display: flex; justify-content:
+space-between; align-items: baseline;">
+            <h3 style="margin: 0; font-size: 0.85rem; color: #8b949e;
+text-transform: uppercase; letter-spacing: 2px; font-family:
+monospace;">System Update Logs</h3>
+            <span style="font-size: 0.7rem; color: #484f58;">Status:
+Operational</span>
+        </header>
+
+        <div class="log-scroll" style="font-size: 0.8rem; line-height: 1.6;
+font-family: 'Consolas', 'Monaco', monospace; max-height: 350px;
+overflow-y: auto; color: #6e7681;">
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: Last Update:Last Update: 2026/05/01 16:00</strong><br>
+                - コードの説明追加<br>
+                - 細かい修正とバグ修正<br>
+- <br>
+            </div>
+
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: Last Update: 2026/04/23 15:56</strong><br>
+                - 個体の表示・非表示ボタンを追加<br>
+                - 個体のデザインを<br>
+- Bのコロニー・女王・兵隊ロジックを追加<br>
+            </div>
+
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: Last Update: 2026/04/23 15:56</strong><br>
+                - Draw()修正<br>
+                - チャートにすべての個体が表示<br>
+- 個体デザインの変更
+            </div>
+
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: 2026/04/22 11:41]</strong><br>
+                - Aが光でコミュニケーションをとるようになった。<br>
+                - draw()内を整理<br>
+- 個体デザインの変更
+            </div>
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: 2026/04/20 11:41]</strong><br>
+                - I_Tipeを実装<br>
+                - カオスボタン実装<br>
+-
+            </div>
+
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: 2026/04/17 11:41]</strong><br>
+                - Evo_Aの無段階進化導入動作不明<br>
+                - WorldEvo_Maxを12に変更<br>
+- elseのエラーがなくなってうれしい。
+            </div>
+
+<div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[Last Update: 2026/04/17 11:41]</strong><br>
+                - Aの進化ロジック整理<br>
+                - バグ完全消去（多分）stepからグローバルへ。<br>
+- elseのエラーがなくなってうれしい。
+            </div>
+
+ <div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[2026/04/15
+14:36]</strong><br>
+                               - ヌルヌル
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <strong style="color: #58a6ff;">[2026/04/15
+14:36]</strong><br>
+                - Gの行動修正：360色を12分割したグループ化を強化<br>
+                - evoAがコロニーから離れ、単独の捕食圏を形成
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <strong style="color: #8b949e;">[2026/04/14
+16:26]</strong><br>
+                - 負の遺産：黒い粒子の悪影響を実装。Eの発生率調整 / F寿命を3000へ
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <strong style="color: #8b949e;">[2026/04/13
+13:42]</strong><br>
+                - 群れ行動：G専用Boids実装。降雨・隕石エフェクト追加。バグ一掃
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <strong style="color: #8b949e;">[2026/04/10
+16:31]</strong><br>
+                - 天変地異：隕石イベント追加。Eが毒を吐く挙動を実装
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <strong style="color: #8b949e;">[2026/04/08]</strong><br>
+                - <span style="color: #d2a8ff;">Genesis
+Turbulence</span>：初期化プロセス再構築<br>
+                - 全タイプAI強化：匂い追跡、ハンター、パック、死骸探索、毒素回避
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <strong style="color: #8b949e;">[2026/04/06]</strong><br>
+                - <span style="color: #7ee787;">Full Eco
+Simulation</span>：プロジェクト始動<br>
+                - 空間ロトカ＝ヴォルテラ / エマージェント・マルチセルラリティ
+            </div>
+
+        </div>
+        <footer style="margin-top: 15px; text-align: right; font-size:
+0.7rem; color: #484f58;">
+            &copy; 2026 Infinite Traits Engine. Build: 0415-Finalized
+        </footer>
+    </section>
+
+    <style>
+        .log-scroll::-webkit-scrollbar { width: 5px; }
+        .log-scroll::-webkit-scrollbar-track { background: #050505; }
+        .log-scroll::-webkit-scrollbar-thumb { background: #30363d;
+border-radius: 10px; }
+    </style>
+</div>
+
+
+</body>
+</html>
+
+
+
