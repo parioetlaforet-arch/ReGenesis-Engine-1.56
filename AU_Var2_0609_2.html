@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Orbit Simulation Console</title>
+
+   <style>
+/* =========================================================
+      4. RETRO NASA CLASSIC (APOLLO SPACECRAFT STYLE)
+========================================================= */
+#topBar {
+     position: fixed;
+     top: 0; left: 0;
+     width: 100%;
+     box-sizing: border-box;
+     background: #2b3036;
+     border-bottom: 3px solid #707780;
+     padding: 8px 12px;
+     gap: 12px;
+     align-items: center;
+     display: flex;
+     flex-wrap: wrap;
+     z-index: 3000;
+     font-family: 'Consolas', 'Courier New', monospace;
+     box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 4px 15px rgba(0,0,0,0.6);
+}
+
+.section {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     padding: 4px 12px;
+     height: 30px;
+     box-sizing: border-box;
+     background: #1e2226;
+     border: 1px solid #485058;
+     border-radius: 2px;
+     box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+}
+.section.vertical { flex-direction: row; height: 30px; }
+
+#topBar label, #topBar span, #topBar div {
+     color: #55ffdd !important;
+     font-size: 11px;
+     font-weight: bold;
+     text-shadow: 0 0 3px rgba(85,255,221,0.5);
+     letter-spacing: 0.5px;
+}
+
+#topBar button {
+     background: linear-gradient(180deg, #485058 0%, #2b3036 100%);
+     border-top: 1px solid #68727c;
+     border-bottom: 2px solid #15181b;
+     border-left: 1px solid #383e44;
+     border-right: 1px solid #383e44;
+     color: #e0e5eb;
+     border-radius: 1px;
+     padding: 1px 10px;
+     font-size: 10px;
+     font-weight: bold;
+     cursor: pointer;
+     height: 22px;
+     line-height: 18px;
+     text-shadow: 0 -1px 0 rgba(0,0,0,0.5);
+}
+#topBar button:hover {
+     background: #505963;
+     color: #ffffff;
+}
+
+#topBar button.toggle-on,
+#topBar button.active {
+     background: linear-gradient(180deg, #ff7700 0%, #b34400 100%) !important;
+     border-color: #ffaa55 !important;
+     color: #ffffff !important;
+     box-shadow: 0 0 10px rgba(255, 119, 0, 0.6) !important;
+     text-shadow: 0 0 4px #fff;
+}
+
+#topBar input[type="range"] {
+     -webkit-appearance: none;
+     appearance: none;
+     background: #101214;
+     height: 4px;
+     width: 90px;
+     vertical-align: middle;
+     margin: 0 4px;
+}
+#topBar input[type="range"]::-webkit-slider-thumb {
+     -webkit-appearance: none;
+     background: #d0d5dd;
+     border: 1px solid #485058;
+     width: 8px;
+     height: 14px;
+     border-radius: 1px;
+     cursor: pointer;
+     box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+#topBar input[type="number"],
+#topBar select {
+     background: #0b0d0e;
+     border: 1px solid #485058;
+     color: #ff9900;
+     font-family: 'Consolas', monospace;
+     font-size: 10px;
+     height: 18px;
+     text-align: center;
+     box-shadow: inset 0 1px 3px rgba(0,0,0,0.9);
+}
+
+.settings-panel {
+     display: none;
+     background: #1e2226 !important;
+     border-top: 2px solid #485058 !important;
+     margin-top: 5px;
+     padding: 8px;
+     gap: 10px;
+     width: 100%;
+     box-shadow: inset 0 3px 10px rgba(0,0,0,0.8);
+     flex-wrap: wrap;
+}
+.settings-panel.open { display: flex !important; }
+
+/* GUIDANCE MONITOR STYLE */
+.help-monitor {
+     display: flex;
+     align-items: center;
+     min-width: 320px;
+     flex: 1;
+     height: 30px;
+     padding: 4px 12px;
+     box-sizing: border-box;
+     background: #101214;
+     border: 1px solid #ff9900;
+     border-radius: 2px;
+     box-shadow: inset 0 0 8px rgba(255,153,0,0.3);
+}
+#helpText {
+     color: #ff9900 !important;
+     font-family: 'Consolas', monospace;
+     font-size: 11px;
+     text-shadow: 0 0 4px rgba(255,153,0,0.6);
+     transition: color 0.2s;
+}
+
+/* Sun ブロック全体 */
+#sunControlBlock {
+     position: relative;
+     padding-left: 30px; /* ボタンの幅ぶん余白を確保 */
+}
+
+/* 折りたたみボタンを固定表示 */
+#sunControlToggle {
+     position: absolute;
+     top: 4px;
+     left: 4px;
+     z-index: 10;
+}
+
+/* 折りたたみ時：中身だけ消す */
+#sunControlBlock.collapsed .sunControlContent {
+     display: none !important;
+}
+
+/* 折りたたみ時の高さ調整 */
+#sunControlBlock.collapsed {
+     height: 32px;
+     overflow: hidden;
+}
+
+
+
+canvas {
+     display: block;
+     position: fixed;
+     top: 0; left: 0;
+     width: 100vw;
+     height: 100vh;
+     z-index: 1;
+     background: #000;
+}
+
+.updated {
+     position: relative;
+     z-index: 4000;
+     color: #55ffdd;
+     font-family: 'Consolas', monospace;
+     font-size: 11px;
+     padding: 6px 12px;
+     background: rgba(30, 34, 38, 0.95);
+     display: inline-block;
+     border-radius: 2px;
+     margin: 5px;
+}
+   </style>
+</head>
+
+<body>
+
+
+
+  <div id="topBar">
+
+     <div class="section vertical">
+       <button id="startBtn" data-help="SIMULATION START: Initiates orbital time progression.">Start (Q)</button>
+       <button id="stopBtn" data-help="SIMULATION STOP: Suspends time progression temporarily.">Stop (W)</button>
+       <button id="resetBtn" data-help="SYSTEM RESET: Regenerates the universe with current parameters.">Reset (E)</button>
+
+<button id="consoleTestBtn" style="background: #3c3c3c; color: #ff8800; border: 1px solid #ff8800;">
+     コンソール診断
+</button>
+     </div>
+<div id="presetPanel">
+     <button id="presetStableBtn">安定軌道</button>
+     <button id="presetChaosBtn">カオス崩壊</button>
+     <button id="presetScatterBtn">拡散テスト</button>
+     <button id="presetRenderBtn">描画負荷</button>
+<button id="triggerGoliathBtn" style="background-color: #880088; color: #ff00ff; font-weight: bold; border: 1px solid #ff00ff;">Goliath</button>
+<button id="btnOrbitCam" style="background-color: #008888; color: #00ffff; font-weight: bold; border: 1px solid #00ffff;">カメラ：Orbitモード OFF</button>
+</div>
+     <div class="section">
+       <button id="fixSunBtn" data-help="FIX SUN: Locks the central star position completely.">fixSun (R)</button>
+       <button id="freeSunBtn" data-help="FREE SUN: Enables gravitational telemetry and movement on the central star.">freeSun (T)</button>
+       <button id="followSunBtn" data-help="FOLLOW SUN: Locks the camera tracking onto the central star.">followSun (Y)</button>
+       <button id="centerSunBtn" data-help="CENTER SUN: Snaps the central star position back to the screen coordinates origin.">centerSun (U)</button>
+       <button id="cometTrailBtn" data-help="COMET TRAIL ONLY: Limits path rendering exclusively to comets.">cometTrail (I)</button>
+       <button id="planetTrailBtn" data-help="PLANET TRAIL ONLY: Limits path rendering exclusively to planets.">planetTrail (O)</button>
+       <button id="sunTrailBtn" data-help="SUN TRAIL ONLY: Limits path rendering exclusively to the central star.">Sun Trail (P)</button>
+     </div>
+
+     <div class="section">
+       <label data-help="SHOW NAMES: Overlays telemetry data (Name & Velocity) onto each body.">
+         <input type="checkbox" id="showNames"> Names (N)
+       </label>
+       <label data-help="SHOW TRAILS: Toggles rendering of orbital path history on/off.">
+         <input type="checkbox" id="showTrail"> Trail
+       </label>
+     </div>
+
+<div id="sunControlBlock" class="collapsible-block">
+
+   <button id="sunControlToggle" class="collapse-small-btn" data-help="COLLAPSE PANEL: Toggles visibility of advanced stellar and mass configuration parameters.">▼</button>
+
+   <div class="section" data-help="SUN MASS: Adjusts core star mass. Increasing value multiplies gravitational pull.">
+     <label>Sun Mass:
+       <input id="sunMass" type="range" min="10" max="5000" value="2000">
+       <input id="sunMassInput" type="number" min="10" max="5000" value="2000">
+     </label>
+   </div>
+
+   <div class="control-group" data-help="SUN INIT VELOCITY X: Sets the initial stellar velocity vector along the X-axis (horizontal impulse).">
+     <label>Sun初期速度 (X方向):</label>
+     <input type="range" id="sunVxSlider" min="-50" max="50" step="0.1" value="0">
+     <input type="number" id="sunVxInput" step="0.1" value="0" style="width:60px;">
+   </div>
+
+   <div class="control-group" data-help="SUN INIT VELOCITY Y: Sets the initial stellar velocity vector along the Y-axis (vertical impulse).">
+     <label>Sun初期速度 (Y方向):</label>
+     <input type="range" id="sunVySlider" min="-50" max="50" step="0.1" value="0">
+     <input type="number" id="sunVyInput" step="0.1" value="0" style="width:60px;">
+   </div>
+
+   <div class="control-group" data-help="SUN INIT VELOCITY Z: Sets the initial stellar velocity vector along the Z-axis (depth impulse).">
+     <label>Sun初期速度 (Z方向):</label>
+     <input type="range" id="sunVzSlider" min="-50" max="50" step="0.1" value="0">
+     <input type="number" id="sunVzInput" step="0.1" value="0" style="width:60px;">
+   </div>
+
+   <div class="section" data-help="OBJECT MASS: Defines base mass baseline for newly spawned minor bodies.">
+     <label>Obj Mass:
+       <input id="objMass" type="range" min="0.1" max="50" step="0.1" value="1.0">
+     </label>
+     <input id="objMassInput" type="number" min="0.1" max="200" step="0.1" value="1.0" style="width:70px;">
+   </div>
+
+   <div class="section" data-help="FIXED OBJECT MASS: Enforces uniform mass across all spawned objects when checked.">
+     <label>
+       <input type="checkbox" id="useFixedObjMass"> FixedObjMass
+     </label>
+   </div>
+
+   <div class="section" data-help="BODY COUNT: Configures maximum initial object capacity within the envelope.">
+     <label>bodyCount:
+       <input type="range" id="bodyCount" min="0" max="3000" value="300">
+     </label>
+     <label>
+       <input type="number" id="bodyCountInput" min="0" max="3000" value="300" style="width:70px;">
+     </label>
+<span id="bodyCountLabel"></span>
+   </div>
+
+   <div class="section" data-help="SIMULATION SPEED: Modifies Delta-Time step resolution per calculation frame.">
+     <label>speed:
+       <span id="speedLabel">10.0</span>x
+       <input type="range" id="speedSlider" min="1" max="30" step="1" value="10">
+       <input type="number" id="speedInput" min="1" max="30" step="1" value="10">
+     </label>
+   </div>
+
+   <div class="control-group" data-help="ORBITAL AUTO-ROTATION: Configures angular velocity for global camera tracking mode.">
+     <label>宇宙の自動回転速度: <span id="rotateSpeedVal">0.001</span></label>
+     <div style="display: flex; gap: 10px; align-items: center;">
+       <input type="range" id="cameraRotateSpeed" min="0" max="0.05" step="0.001" value="0.001" style="flex: 1;">
+       <input type="number" id="rotateSpeedInput" min="0" max="0.05" step="0.001" value="0.001" style="width: 70px;">
+     </div>
+       <button id="btnToggleRotate" class="btn" style="margin-top: 5px;">自動回転: OFF</button>
+   </div>
+
+</div>
+<div class="section save-panel" data-help="SAVE / LOAD: Writes/Reads present orbital vectors to local memory slots (0-2).">
+   <span>Save / Load</span>
+   <button onclick="saveUniverse(0)">S0</button>
+   <button onclick="loadUniverse(0)">L0</button>
+   <button onclick="saveUniverse(1)">S1</button>
+   <button onclick="loadUniverse(1)">L1</button>
+   <button onclick="saveUniverse(2)">S2</button>
+   <button onclick="loadUniverse(2)">L2</button>
+</div>
+
+<div class="section" id="cameraPresetSection" data-help="CAMERA PRESETS: Instantaneous vector realignment for equatorial, polar, or bird's-eye global views.">
+   <label>CAMERA PRESET:</label>
+   <button id="camEquatorBtn" data-help="EQUATORIAL VIEW: Snaps camera angle parallel to the celestial equator plane.">Equator</button>
+   <button id="camPolarBtn" data-help="POLAR VIEW: Aligns camera directly above the stellar rotational pole.">Polar</button>
+   <button id="camOverviewBtn" data-help="OVERVIEW: Sets a high-altitude isometric perspective for maximum sector tracking.">Overview</button>
+</div>
+
+<div class="section" style="flex-direction:row; gap:15px;" data-help="TELEMETRY REALTIME STREAM: Monitors exact entity counts, computation loops, velocity vectors, and entity casualties.">
+   <div id="bodyCountDisplay" style="color:white; font-size:12px;">Sun: 0 / Obj: 0 / Comet: 0</div>
+   <div id="turnCountDisplay" style="color:white; font-size:12px;">Turn: 0</div>
+   <div id="sunSpeedDisplay" style="color:white; font-size:12px;">Sun Speed: 0</div>
+   <div>Alive: <span id="statAlive">0</span></div>
+   <div>Escaped: <span id="statEscaped" style="color: #ffaa00;">0</span></div>
+   <div>Collided: <span id="statCollided" style="color: #ff4444;">0</span></div>
+   <div>Removed: <span id="statRemoved" style="color: #888888;">0</span></div>
+   <div>NaN: <span id="statNaN" style="color: #ff00ff; font-weight: bold;">0</span></div>
+</div>
+
+<div class="section">
+   <button id="toggleSettingsBtn" data-help="SETTINGS TOGGLE: Expands or collapses advanced core astrophysics tuning sliders.">Settings ▼</button>
+</div>
+
+<div id="settingsPanel" class="settings-panel">
+
+   <div class="section" data-help="GRAVITY MULTIPLIER: Scales the overarching cosmic gravitational constant (G-constant).">
+     <label>gravitySlider:
+       <input type="range" id="gravitySlider" min="0.1" max="3" step="0.1" value="1">
+       <input type="number" id="gravityInput" min="0.1" max="3" step="0.1" value="1">
+     </label>
+   </div>
+
+   <div class="section" data-help="SPAWN VELOCITY MULTIPLIER: Scales initial tangent orbital velocity vector for newly generated bodies.">
+     <label>spawnVelSlider:
+       <input type="range" id="spawnVelSlider" min="0.1" max="3" step="0.1" value="1">
+       <input type="number" id="spawnVelInput" min="0.1" max="3" step="0.1" value="1">
+     </label>
+   </div>
+
+   <div class="section" data-help="TRAIL LENGTH MULTIPLIER: Dynamically expands maximum buffer limit for orbit path retention history.">
+     <label>trailLenSlider:
+       <input type="range" id="trailLenSlider" min="0.1" max="3" step="0.1" value="0.5">
+     </label>
+   </div>
+
+   <div class="section" data-help="TRAIL COLOR RENDERING: Selects dynamic rendering shader module for orbit path history lines.">
+     <label>trailColorSelect:
+       <select id="trailColorSelect">
+         <option value="distance">Distance</option>
+       </select>
+     </label>
+   </div>
+
+   <div class="section" data-help="MASS & DISTANCE RANGE: Configures algorithmic generation envelopes for random sector initializations.">
+     <label>
+       <input type="number" id="spawnMinMass" min="0.1" max="200" step="0.1" value="0.1" style="width:70px;"> MinMass
+     </label>
+     <label>
+       <input type="number" id="spawnMaxMass" min="0.1" max="200" step="0.1" value="5.0" style="width:70px;"> MaxMass
+     </label>
+     <label>
+       <input type="number" id="spawnMinDist" min="50" max="5000" step="50" value="300" style="width:80px;"> MinDist
+     </label>
+     <label>
+       <input type="number" id="spawnMaxDist" min="50" max="5000" step="50" value="1200" style="width:80px;"> MaxDist
+     </label>
+   </div>
+
+   <div class="section" data-help="COMPUTATIONAL THRESHOLDS: Configures direct N-body calculation cap limits and singularities softening scale (EPS²).">
+     <label>nbodyThreshold:
+       <input type="number" id="nbodyThreshold" min="50" max="2000" step="10" value="150" style="width:80px;">
+     </label>
+
+     <label>INPUT EPS²:
+       <input type="number" id="eps2Input" min="0" max="200" step="1" value="64" style="width:70px;">
+     </label>
+   </div>
+
+   <div class="help-monitor">
+     <div id="helpText">CONSOLE ONLINE: Hover mouse cursor over telemetry components to stream subsystem data.</div>
+   </div>
+
+</div></div>
+
+</div><!-- settingsPanel -->
+
+
+   </div><!-- topBar -->
+
+   <canvas id="canvas"></canvas>
+
+   <div id="lastUpdatedBottom" class="updated" style="position:fixed; bottom:10px; left:10px;"></div>
+
+
+
+
+   <script src="orbit3d_Var2_1.js" defer></script>
+
+   <script>
+
+
+     function showStartupSequence() {
+       const msg = document.getElementById("startupMessage");
+       if (!msg) return;
+       let index = 0;
+
+       function nextPhase() {
+   if (index >= phases.length) {
+     msg.style.opacity = 0;
+     return;
+   }
+
+   const list = phases[index];
+   const text = list[Math.floor(Math.random() * list.length)];
+   msg.textContent = text;
+   msg.style.opacity = 1;
+   msg.style.transform = "translateY(0)";
+
+   setTimeout(() => {
+     msg.style.opacity = 0;
+     msg.style.transform = "translateY(-20px)";
+     index++;
+     setTimeout(nextPhase, 1200);
+   }, 2000);
+}
+
+nextPhase();
+}
+
+const toggleSettingsBtn = document.getElementById("toggleSettingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+
+if (toggleSettingsBtn && settingsPanel) {
+   toggleSettingsBtn.addEventListener("click", () => {
+     const isOpen = settingsPanel.classList.toggle("open");
+     toggleSettingsBtn.textContent = isOpen ? "Settings ▲" : "Settings ▼";
+     adjustCanvasMargin();
+   });
+}
+
+/* Dynamic Guidance Monitor Script */
+document.addEventListener("DOMContentLoaded", () => {
+   const helpTextEl = document.getElementById("helpText");
+   const defaultMsg =
+     "CONSOLE ONLINE: Hover mouse cursor over telemetry components to stream subsystem data.";
+
+   document.querySelectorAll("[data-help]").forEach(el => {
+     el.addEventListener("mouseenter", () => {
+       const msg = el.getAttribute("data-help");
+       if (msg && helpTextEl) helpTextEl.textContent = msg;
+     });
+     el.addEventListener("mouseleave", () => {
+       if (helpTextEl) helpTextEl.textContent = defaultMsg;
+     });
+   });
+});
+
+function formatDate(d) {
+   const y = d.getFullYear();
+   const m = String(d.getMonth() + 1).padStart(2, "0");
+   const day = String(d.getDate()).padStart(2, "0");
+   const h = String(d.getHours()).padStart(2, "0");
+   const min = String(d.getMinutes()).padStart(2, "0");
+   return `${y}/${m}/${day} ${h}:${min}`;
+}
+
+const now = new Date();
+const text = "LAST UPDATE: " + formatDate(now);
+
+const topEl = document.getElementById("lastUpdatedTop");
+const bottomEl = document.getElementById("lastUpdatedBottom");
+if (topEl) topEl.textContent = text;
+if (bottomEl) bottomEl.textContent = text;
+
+// DOMが読み込まれた後に、追加したカメラプリセットボタンをJavaScriptのapplyCameraPreset関数と完全同期させるわ！
+document.addEventListener("DOMContentLoaded", () => {
+   const eqBtn = document.getElementById("camEquatorBtn");
+   const plBtn = document.getElementById("camPolarBtn");
+   const ovBtn = document.getElementById("camOverviewBtn");
+
+   if (eqBtn) eqBtn.addEventListener("click", () => applyCameraPreset('equator'));
+   if (plBtn) plBtn.addEventListener("click", () => applyCameraPreset('polar'));
+   if (ovBtn) ovBtn.addEventListener("click", () => applyCameraPreset('overview'));
+});
+
+function adjustCanvasMargin() {
+   const bar = document.getElementById("topBar");
+   const canvas = document.getElementById("canvas");
+   if (bar && canvas) {
+     canvas.style.paddingTop = bar.offsetHeight + "px";
+   }
+}
+
+
+  window.addEventListener("resize", adjustCanvasMargin);
+
+document.getElementById("sunControlToggle").onclick = () => {
+     const block = document.getElementById("sunControlBlock");
+     const btn = document.getElementById("sunControlToggle");
+
+     block.classList.toggle("collapsed");
+
+     // ボタンの矢印切り替え
+     btn.textContent = block.classList.contains("collapsed") ? "▲" : "▼";
+};
+
+   </script>
+
+
+
+</body>
+</html>
